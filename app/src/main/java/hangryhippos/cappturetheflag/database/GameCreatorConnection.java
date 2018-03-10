@@ -33,9 +33,9 @@ public class GameCreatorConnection {
         this.startLocation = startLocation;
     }
 
-    public boolean isGameInProgress()
+    public static boolean isGameInProgress()
     {
-        MongoCollection collection = connection.getMongoDatabase().getCollection(GAME_SESSION_COLLECTION_NAME);
+        MongoCollection collection = new DatabaseConnection().getMongoDatabase().getCollection(GAME_SESSION_COLLECTION_NAME);
         Document d = (Document) collection.find().first();
 
         if(d == null)
