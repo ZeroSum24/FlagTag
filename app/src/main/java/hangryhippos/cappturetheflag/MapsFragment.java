@@ -8,16 +8,20 @@ import android.location.Location;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -27,6 +31,8 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -36,15 +42,18 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
-public class MapsFragment extends FragmentActivity implements OnMapReadyCallback,
+public class MapsFragment extends Fragment implements GoogleMap.OnMarkerClickListener,
+        OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener{
 
     private GoogleMap mMap;
+    private MapView mMapView;
     private SupportMapFragment mapFragment;
     private GoogleApiClient mGoogleApiClient;
     private final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -55,9 +64,9 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_map);
+        MapsInitializer.initialize(getActivity().getApplicationContext());
 
         //Initialises Difficulty and Points Systems
 
@@ -66,7 +75,7 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
         displayPointsSystem();
 
         //Obtain the SupportMapFragment
-        mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.maps);
+        mapFragment = (SupportMapFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.maps);
 
 
         //Get notified when the map is ready to be used. Long-running activities are performed asynchronously
@@ -80,6 +89,22 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
 
         Log.e("LocationAPICreate", "LocationAPI null: " + (mGoogleApiClient == null));
         Log.e("LocationOnCreate", "Location null: " + (mLastLocation == null));
+    }
+
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+        Log.v(TAG, "onCreateView called");
+        View rootView = inflater.inflate(R.layout.activity_maps, container, false);
+        mMapView = rootView.findViewById(R.id.maps);
+        mMapView.onCreate(savedInstanceState);
+        mMapView.onResume(); //needed to get the map to display immediately
+        return rootView;
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        return true;
     }
 
     /**
@@ -162,7 +187,7 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    protected void onStart() {
+    public void onStart() {
         super.onStart();
         Log.e("MapUsingStart", "StartIsActive: " + true);
         if (this.mGoogleApiClient != null) {
@@ -172,7 +197,7 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    protected void onStop() {
+    public void onStop() {
         super.onStop();
         Log.e("MapUsingStop", "StopIsActive: " + true);
         if (mGoogleApiClient.isConnected() && this.mGoogleApiClient != null) {
@@ -187,7 +212,7 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
         mLocationRequest.setFastestInterval(1000); // at most every second
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         // Can we access the user’s current location?
-        int permissionCheck = ContextCompat.checkSelfPermission(this,
+        int permissionCheck = ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION);
         if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi
@@ -204,7 +229,7 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
             System.out.println("IllegalStateException thrown [onConnected]");
         }
         // Can we access the user’s current location?
-        if (ContextCompat.checkSelfPermission(this,
+        if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED) {
             Log.e("MapLocationOn:", "Location Available:" + isLocationEnabled());
@@ -216,7 +241,7 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
                 Log.e("LocationAPIConnected", "LocationAPI null: " + (mGoogleApiClient == null));
             }
         } else {
-            ActivityCompat.requestPermissions(this,
+            ActivityCompat.requestPermissions(getActivity(),
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
@@ -265,7 +290,7 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
      * Method builds the Google Api Client for use by the map
      */
     private synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
+        mGoogleApiClient = new GoogleApiClient.Builder(getActivity().getApplicationContext())
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
@@ -380,7 +405,7 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
         //Method for checking the location connection
         int locationMode = 0;
         try {
-            locationMode = Settings.Secure.getInt(this.getContentResolver(), Settings.Secure.LOCATION_MODE);
+            locationMode = Settings.Secure.getInt(getActivity().getApplicationContext().getContentResolver(), Settings.Secure.LOCATION_MODE);
         } catch (Settings.SettingNotFoundException e) {
             e.printStackTrace();
         }
@@ -398,7 +423,7 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
          High_Accuracy Mode. Otherwise Location may not display */
         int locationMode = 0;
         try {
-            locationMode = Settings.Secure.getInt(this.getContentResolver(), Settings.Secure.LOCATION_MODE);
+            locationMode = Settings.Secure.getInt(getActivity().getApplicationContext().getContentResolver(), Settings.Secure.LOCATION_MODE);
         } catch (Settings.SettingNotFoundException e) {
             e.printStackTrace();
         }
@@ -411,8 +436,8 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
      * option to quit the session. It also updates the users score to be submitted by the
      * Main Menu Activity.
      */
-    @Override
-    public void onBackPressed() {
+//    @Override
+//    public void onBackPressed() {
 //        AlertDialogManager alert = new AlertDialogManager();
 //        alert.showAlertDialog(MapsActivity.this, null,
 //                getString(R.string.cQuitAlertHeader), getString(R.string.cQuitAlertButton),
@@ -425,7 +450,7 @@ public class MapsFragment extends FragmentActivity implements OnMapReadyCallback
 //                        startActivity(new Intent(MapsActivity.this, MainMenuActivity.class));
 //                    }
 //                });
-    }
+//    }
 
     /**
      * Overrides method to close the settings menu if anywhere outside the settings menu is touched

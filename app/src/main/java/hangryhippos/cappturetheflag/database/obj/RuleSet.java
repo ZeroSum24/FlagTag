@@ -45,4 +45,10 @@ public class RuleSet
     public Zone getJailZone() {
         return jailZone;
     }
+
+    public String toString()
+    {
+        return String.format("Score Limit: %d\nMax Per Team: %d\nBlue Zone: %s\nRed Zone: %s\nNeutral Zone: %s\nJail Zone: %s",
+        this.getScoreLimit(), this.getMaxPerTeam(), this.getBlueZone().toString(), this.getRedZone().toString(), this.getNeutralZone().toString(), this.getJailZone().toString());
+    }
 }

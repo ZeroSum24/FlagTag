@@ -2,6 +2,7 @@
 {
   "_id": 0,
   "in_progress": true,
+  "host": "<deviceID>",
 
   "blueFlag":
   {
