@@ -1,0 +1,8 @@
+Activities:
+
+Start Screen
+Create Game
+Join Game
+In Play
+Game End
+Settings
