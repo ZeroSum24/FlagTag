@@ -9,6 +9,7 @@ import org.bson.Document;
 import java.util.ArrayList;
 
 import hangryhippos.cappturetheflag.database.obj.RuleSet;
+import hangryhippos.cappturetheflag.database.obj.Utils;
 import hangryhippos.cappturetheflag.database.obj.Zone;
 
 /**
@@ -20,9 +21,6 @@ public class RuleSetConnection
     private DatabaseConnection connection;
 
     private static final String COLLECTION_NAME_RULES = "game_rules";
-    private static final String TOP_LEFT = "topLeft";
-    private static final String BOTTOM_RIGHT = "bottomRight";
-
 
     public RuleSetConnection(DatabaseConnection connection)
     {
@@ -38,10 +36,10 @@ public class RuleSetConnection
 
             int scoreLimit = d.getInteger("scoreLimit");
             int maxPerTeam = d.getInteger("playersPerTeam");
-            Zone blueZone = getZone(d, "blueZone");
-            Zone redZone = getZone(d, "redZone");
-            Zone jailZone = getZone(d, "jailZone");
-            Zone neutralZone = getZone(d, "neutralZone");
+            Zone blueZone = Utils.getZone(d, "blueZone");
+            Zone redZone = Utils.getZone(d, "redZone");
+            Zone jailZone = Utils.getZone(d, "jailZone");
+            Zone neutralZone = Utils.getZone(d, "neutralZone");
 
             if(blueZone == null || redZone == null || jailZone == null || neutralZone == null)
             {
@@ -58,31 +56,6 @@ public class RuleSetConnection
         }
 
         return null;
-    }
-
-    private Zone getZone(Document doc, String parentKey)
-    {
-
-        try
-        {
-            Document top = (Document) doc.get(parentKey);
-            Document topLeft = (Document) top.get(TOP_LEFT);
-            Document bottomRight = (Document) top.get(BOTTOM_RIGHT);
-
-            ArrayList<Double> topLeftArray = (ArrayList<Double>) topLeft.get("coordinates");
-            ArrayList<Double> bottomRightArray = (ArrayList<Double>) bottomRight.get("coordinates");
-
-            Pair<Double, Double> topLeftPair = new Pair<>(topLeftArray.get(0), topLeftArray.get(1));
-            Pair<Double, Double> bottomRightPair = new Pair<>(bottomRightArray.get(0), bottomRightArray.get(1));
-
-            return new Zone(topLeftPair, bottomRightPair);
-        }
-        catch (Exception e)
-        {
-            System.out.println(e.getMessage());
-            return null;
-        }
-
     }
 
     public DatabaseConnection getConnection()
