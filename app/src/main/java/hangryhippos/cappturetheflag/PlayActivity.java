@@ -33,6 +33,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -88,9 +89,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         //in order to keep the user interface responsive
         mapFragment.getMapAsync(this);
 
-        mGoogleApiClient = GoogleApiHandler.getInstance(this.getApplicationContext()).getApiClient();
-        GoogleApiHandler.getInstance(this).addConnectionCallbacks(this);
-        GoogleApiHandler.getInstance(this).addOnConnectionFailedListener(this);
+        mGoogleApiClient = GoogleApiHandler.getInstance(PlayActivity.this).getApiClient();
 
         Log.e("LocationAPICreate", "LocationAPI null: " + (mGoogleApiClient == null));
         Log.e("LocationOnCreate", "Location null: " + (mLastLocation == null));
@@ -107,14 +106,15 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        LatLngBounds ADELAIDE = new LatLngBounds(new LatLng(-35.0, 138.58), new LatLng(-34.9, 138.61));
 
-        //Should be the code which enables markers to be displayed on the map
+        // Constrain the camera target to the Adelaide bounds.
+        mMap.setLatLngBoundsForCameraTarget(ADELAIDE);
 
+        // Set the camera to the greatest possible zoom level that includes the
+// bounds
+//        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(ADELAIDE, 0));
 
-        LatLngBounds bounds = builder.build();
-        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, 50);
-        googleMap.moveCamera(cu);
 
         try {
             // Visualise current position with a small blue circle

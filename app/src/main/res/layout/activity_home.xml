@@ -5,9 +5,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/splash_background"
     >
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/splash_background"
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/app_name"/>
 
     <ImageView
         android:id="@+id/btn_play"
@@ -23,6 +28,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_play" />
+
+    <ImageView
+        android:id="@+id/ic_flag"
+        android:layout_width="61dp"
+        android:layout_height="68dp"
+        android:layout_marginBottom="96dp"
+        android:layout_marginStart="100dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/ic_flag_large" />
 
     <include layout="@layout/settings_buttons"/>
 
