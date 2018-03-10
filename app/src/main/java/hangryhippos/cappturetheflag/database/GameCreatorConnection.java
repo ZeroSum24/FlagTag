@@ -26,9 +26,9 @@ public class GameCreatorConnection {
     private String deviceID;
     private LatLng startLocation;
 
-    public GameCreatorConnection(LatLng startLocation, String deviceID, String displayName, DatabaseConnection connection) {
+    public GameCreatorConnection(LatLng startLocation, String deviceID, String displayName) {
         this.deviceID = deviceID;
-        this.connection = connection;
+        this.connection = new DatabaseConnection();
         this.displayName = displayName;
         this.startLocation = startLocation;
     }
@@ -48,7 +48,7 @@ public class GameCreatorConnection {
         MongoCollection collection = connection.getMongoDatabase().getCollection(GAME_SESSION_COLLECTION_NAME);
 
         Document document = new Document();
-        document.put("_id", 0);
+        document.put("_id", sessionID);
         document.put("in_progress", true);
         document.put("host", deviceID);
         document.put("blueTeam", buildTeamDoc(true));
