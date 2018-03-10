@@ -1,7 +1,5 @@
 package hangryhippos.cappturetheflag.database;
 
-import android.provider.Settings;
-
 import com.google.android.gms.maps.model.LatLng;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
@@ -18,8 +16,7 @@ import static com.mongodb.client.model.Filters.eq;
  * Used to set initial state of game session in database
  */
 
-public class GameCreatorConnection
-{
+public class GameCreatorConnection {
     private static final String GAME_SESSION_COLLECTION_NAME = "sessions";
 
     private DatabaseConnection connection;
@@ -29,18 +26,29 @@ public class GameCreatorConnection
     private String deviceID;
     private LatLng startLocation;
 
-    public GameCreatorConnection(LatLng startLocation, String deviceID, String displayName, DatabaseConnection connection) {
+    public GameCreatorConnection(LatLng startLocation, String deviceID, String displayName) {
         this.deviceID = deviceID;
-        this.connection = connection;
+        this.connection = new DatabaseConnection();
         this.displayName = displayName;
         this.startLocation = startLocation;
     }
 
-    public void registerNewGame(){
+    public static boolean isGameInProgress()
+    {
+        MongoCollection collection = new DatabaseConnection().getMongoDatabase().getCollection(GAME_SESSION_COLLECTION_NAME);
+        Document d = (Document) collection.find().first();
+
+        if(d == null)
+            return false;
+
+        return d.getBoolean("in_progress", false);
+    }
+
+    public void registerNewGame() {
         MongoCollection collection = connection.getMongoDatabase().getCollection(GAME_SESSION_COLLECTION_NAME);
 
         Document document = new Document();
-        document.put("_id", 0);
+        document.put("_id", sessionID);
         document.put("in_progress", true);
         document.put("host", deviceID);
         document.put("blueTeam", buildTeamDoc(true));
@@ -51,14 +59,12 @@ public class GameCreatorConnection
 
     }
 
-    private Document buildTeamDoc(boolean inTeam)
-    {
+    private Document buildTeamDoc(boolean inTeam) {
         Document membersDoc = new Document();
         ArrayList<Document> members = new ArrayList<>();
         Document memberDoc = new Document();
 
-        if(inTeam)
-        {
+        if (inTeam) {
             memberDoc.put("deviceID", deviceID);
             memberDoc.put("displayName", displayName);
             memberDoc.put("isJailed", false);
@@ -76,8 +82,7 @@ public class GameCreatorConnection
         return membersDoc;
     }
 
-    private Document buildFlagDoc(double latitude, double longitude, String carrier)
-    {
+    private Document buildFlagDoc(double latitude, double longitude, String carrier) {
         Document location = (Document) Utils.buildLocationDoc(latitude, longitude).get("location");
 
         Document parent = new Document();
