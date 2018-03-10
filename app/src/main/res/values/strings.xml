@@ -19,4 +19,14 @@
     <string name="format_name">Name: %1$s</string>
     <string name="connection_type">Connection Type</string>
     <string name="change">Change</string>
+
+    <!-- Strings for Google Play Sign in - Main Menu -->
+    <string name="sign_in_explanation">Sign In with Google to access bonus features.</string>
+    <string name="you_are_signed_in">You are signed in with Google.</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="click_me">Click me!</string>
+    <string name="you_won">OK! You won!</string>
+    <string name="signin_other_error">There was an issue with sign in. Please try again later.</string>
+
+
 </resources>

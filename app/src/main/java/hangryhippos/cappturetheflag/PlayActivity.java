@@ -48,7 +48,6 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         CreateNdefMessageCallback {
 
 
-
     private Button lyricsButton;
     private Button guessButton;
     private RelativeLayout settingsMenu;
