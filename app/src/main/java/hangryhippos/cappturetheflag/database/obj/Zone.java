@@ -1,6 +1,6 @@
 package hangryhippos.cappturetheflag.database.obj;
 
-import android.util.Pair;
+import android.support.v4.util.Pair;
 
 /**
  * Represents a 2D (lat/long) zone in the real world using two points of
@@ -23,5 +23,10 @@ public class Zone
 
     public Pair<Double, Double> getTopRight() {
         return bottomRight;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("(%.5f, %.5f) -> (%.5f, %.5f)", topLeft.first, topLeft.second, bottomRight.first, bottomRight.second);
     }
 }
