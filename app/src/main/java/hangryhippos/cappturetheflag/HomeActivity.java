@@ -19,8 +19,8 @@ import android.widget.ImageView;
 public class HomeActivity extends AppCompatActivity implements
         View.OnClickListener{
 
-    private static final String APP_NAME = "Cappture the Flag";
-    private static final String DISPLAY_NAME_KEY = "DisplayName";
+    public static final String APP_NAME = "Cappture the Flag";
+    public static final String DISPLAY_NAME_KEY = "DisplayName";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +40,11 @@ public class HomeActivity extends AppCompatActivity implements
         //Check if the player has a name stored - if not then ask them to enter one
         if (!checkDisplayName()){
             enterDisplayName();
+        }
+
+        //Check if an internet connection is available - if not send an alert dialog.
+        if (!isNetworkAvailable(this)){
+            sendNetworkErrorDialog();
         }
 
     }

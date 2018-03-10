@@ -16,4 +16,7 @@
     <string name="enter_name">Enter your name</string>
     <string name="msg_enter_name">This will be visible to other players</string>
     <string name="okay">Okay</string>
+    <string name="format_name">Name: %1$s</string>
+    <string name="connection_type">Connection Type</string>
+    <string name="change">Change</string>
 </resources>
