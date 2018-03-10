@@ -1,0 +1,98 @@
+"session" :
+{
+  "_id": 0,
+  "in_progress": true,
+
+  "blueFlag":
+  {
+    "location":
+    {
+      "type": "Point",
+      "coordinates": [75.412, 67.121]
+    },
+
+    "carrier": "<deviceID>"
+  },
+
+  "redFlag":
+  {
+    "location":
+    {
+      "type": "Point",
+      "coordinates": [45.412, 67.121]
+    },
+
+    "carrier": "<deviceID>"
+  },
+
+  "blueTeam":
+  {
+    "members":
+    [
+      {
+        "deviceID": "xxx",
+        "displayName": "y",
+        "isJailed": true,
+        "numOfCaps": 1,
+        "numOfTags": 3,
+        "numOfJails": 0,
+
+        "items":
+        [
+          {
+            "name": "<ItemName>",
+            "count": 1
+          }
+        ],
+
+        "location":
+        {
+          "type": "Point",
+          "coordinates": [48.412, 67.121]
+        }
+      }
+    ]
+  },
+
+  "redTeam":
+  {
+    "members":
+    [
+      {
+        "deviceID": "xxx",
+        "displayName": "y",
+        "isJailed": true,
+        "numOfCaps": 1,
+        "numOfTags": 3,
+        "numOfJails": 0,
+
+        "items":
+        [
+          {
+            "name": "<ItemName>",
+            "count": 1
+          }
+        ],
+
+        "location":
+        {
+          "type": "Point",
+          "coordinates": [48.412, 67.121]
+        }
+      }
+    ]
+  },
+
+  "powerUps":
+  [
+    {
+      "name": "<PowerUpName>",
+
+      "location":
+      {
+        "type": "Point",
+        "coordinates": [52.792, 67.121]
+      }
+    }
+  ]
+}
