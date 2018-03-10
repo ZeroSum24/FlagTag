@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/relative"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:layout_editor_absoluteX="0dp"
+    tools:layout_editor_absoluteY="81dp">
+
+    <EditText
+        android:id="@+id/DisplayName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:labelFor="@+id/DisplayName"
+        android:singleLine="false"
+        android:text="@id/DisplayName"
+        tools:layout_editor_absoluteX="85dp"
+        tools:layout_editor_absoluteY="140dp"
+        tools:text="Name" />
+
+    <Switch
+        android:id="@+id/ConnectionType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:layout_editor_absoluteX="163dp"
+        tools:layout_editor_absoluteY="242dp"
+        tools:text="4G" />
+</android.support.constraint.ConstraintLayout>
