@@ -27,4 +27,5 @@
         tools:layout_editor_absoluteX="163dp"
         tools:layout_editor_absoluteY="242dp"
         tools:text="4G" />
+
 </android.support.constraint.ConstraintLayout>

@@ -1,10 +1,12 @@
 package hangryhippos.cappturetheflag;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
+<<<<<<< HEAD
 import android.graphics.Rect;
 import android.content.Intent;
+=======
+>>>>>>> 5891ae15fda9b7e0e08e816dacddd75d7339acfc
 import android.location.Location;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
@@ -14,22 +16,18 @@ import android.nfc.NfcEvent;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.Settings;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
+<<<<<<< HEAD
 import android.widget.TextView;
 import android.widget.Toast;
+=======
+
+>>>>>>> 5891ae15fda9b7e0e08e816dacddd75d7339acfc
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -41,15 +39,16 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+<<<<<<< HEAD
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.nio.charset.Charset;
+=======
+>>>>>>> 5891ae15fda9b7e0e08e816dacddd75d7339acfc
 
 public class PlayActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -57,12 +56,15 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         LocationListener,
         CreateNdefMessageCallback {
 
+<<<<<<< HEAD
 
     private Button lyricsButton;
     private Button guessButton;
     private RelativeLayout settingsMenu;
     private View congratsOverlay;
     public NfcAdapter mNfcAdapter;
+=======
+>>>>>>> 5891ae15fda9b7e0e08e816dacddd75d7339acfc
     private GoogleMap mMap;
     private SupportMapFragment mapFragment;
     private GoogleApiClient mGoogleApiClient;
@@ -70,8 +72,11 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean mLocationPermissionGranted = false;
     private Location mLastLocation;
     private static final String TAG = "MapsActivity";
+<<<<<<< HEAD
     private TextView textView;
     private List<Marker> markerList;
+=======
+>>>>>>> 5891ae15fda9b7e0e08e816dacddd75d7339acfc
 
 
     @Override
@@ -87,8 +92,6 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
         Log.e("MapsActivityCreate", "DifficultyLevel level: ");
-//        generalActivityIntents();
-//        displayPointsSystem();
 
         //Obtain the SupportMapFragment
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.maps);
@@ -98,10 +101,9 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         //in order to keep the user interface responsive
         mapFragment.getMapAsync(this);
 
-        // Create an instance of GoogleAPIClient.
-        if (mGoogleApiClient == null) {
-            buildGoogleApiClient();
-        }
+        mGoogleApiClient = GoogleApiHandler.getInstance(this.getApplicationContext()).getApiClient();
+        GoogleApiHandler.getInstance(this).addConnectionCallbacks(this);
+        GoogleApiHandler.getInstance(this).addOnConnectionFailedListener(this);
 
         Log.e("LocationAPICreate", "LocationAPI null: " + (mGoogleApiClient == null));
         Log.e("LocationOnCreate", "Location null: " + (mLastLocation == null));
@@ -117,31 +119,11 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-//
-//        int mapSize = mapCurrent.mapSize();
-//
+
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
-//        //Should be the code which enables markers to be displayed on the map
-////
-////        for (int i = 0; i < mapSize; i++) {
-////            Placemark currentPlacemark = mapCurrent.getPlacemark(i);
-////            if(!currentPlacemark.isPlacemarkRemoved()) {
-////                Double xCoordinate = currentPlacemark.getPoint().getLat();
-////                Double yCoordinate = currentPlacemark.getPoint().getLong();
-////                String description = getString(currentPlacemark.getDescription());
-////                int markerIcon = currentPlacemark.returnMarkerImage();
-//
-//                LatLng coordinates = new LatLng(xCoordinate, yCoordinate);
-//                builder.include(coordinates);
-//
-//                Marker currentMarker = mMap.addMarker(new MarkerOptions().position(coordinates).title(description)
-//                        .icon(BitmapDescriptorFactory.fromResource(markerIcon)));
-//                markerList.add(currentMarker);
-//                Log.e("MapLoad", "Marker added: " + true);
-//            } else {
-//                markerList.add(null);
-//            }
-//        }
+
+        //Should be the code which enables markers to be displayed on the map
+
 
         LatLngBounds bounds = builder.build();
         CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, 50);
@@ -194,7 +176,6 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         if (this.mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
-        displayPointsSystem();
     }
 
     @Override
@@ -261,40 +242,8 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         Log.d("New Location", "Lat: " + current.getLatitude() + "Lng : " + current.getLongitude());
         Location target = new Location("target");
 
-//        for (int i = 0; i < markerList.size(); i++) {
-//            Marker currentMarker = markerList.get(i);
-//
-//            if (currentMarker != null) {
-//                LatLng point = currentMarker.getPosition();
-//
-//                target.setLatitude(point.latitude);
-//                target.setLongitude(point.longitude);
-//                if (current.distanceTo(target) < 8) { //Adjust distance to allow word pickup
-//                    // bingo!
-//
-//                    mapOverlayCall(i); //calls the congrats map overlay
-//                    currentMarker.setVisible(false); //Makes the marker invisible
-//                    currentMarker.remove(); //remove marker from map
-//                    markerList.set(i, null); //Should remove marker from list without reducing the size of the list
-//                    accessGame.getCurrentSong().getMap().getPlacemark(i).setPlacemarkRemoved(true);
-//                    displayPointsSystem(); //updates the points system with new points
-//
-//                }
-//            }
-//        }
     }
 
-    /**
-     * Method builds the Google Api Client for use by the map
-     */
-    private synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-        mGoogleApiClient.connect();
-    }
 
     @Override
     public void onConnectionSuspended(int flag) {
@@ -353,129 +302,6 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         NdefMessage msg = (NdefMessage) rawMsgs[0];
         // record 0 contains the MIME type, record 1 is the AAR, if present
     }
-    /**
-     * Method checks the points which the user has collected and displays them on the activity.
-     */
-    private void displayPointsSystem() {
-        //POINTS SYSTEM
-
-//        //Initialises the Views here
-//        TextView setCurrentPoints = findViewById(R.id.currentPoints);
-//        TextView setTotalPoints = findViewById(R.id.totalPoints);
-//
-//        //Accesses the data needed to display the views
-//        String currentPoints = Integer.toString(accessGame.getPointsSystem().getCurrentPoints());
-//        String totalPoints = Integer.toString(accessGame.getPointsSystem().getTotalPoints());
-//
-//        //Sets the views here
-//        setCurrentPoints.setText(currentPoints);
-//        setTotalPoints.setText(totalPoints);
-
-    }
-
-    /**
-     * Method manages the two intent buttons (lyrics and guess) which
-     * governs which activity is accessed (button name respective). It also governs the settings
-     * button.
-     * <p>
-     * It also highlights the chosen button to show the user which has been clicked.
-     */
-    private void generalActivityIntents() {
-        //GENERAL ACTIVITY FUNCTIONS
-
-//        ImageButton settingsButton;
-//
-//        lyricsButton = findViewById(R.id.leftButton);
-//        guessButton = findViewById(R.id.rightButton);
-//        settingsButton = findViewById(R.id.settingsButton);
-//        settingsMenu = findViewById(R.id.settingsMenu);
-//        congratsOverlay = findViewById(R.id.bubble_map_congrats);
-//
-//        lyricsButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                lyricsButton.setTextColor(getColor(R.color.colorIcons));
-//                startActivity(new Intent(MapsActivity.this, LyricsActivity.class));
-//            }
-//        });
-//        guessButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                guessButton.setTextColor(getColor(R.color.colorIcons));
-//                startActivity(new Intent(MapsActivity.this, GuessActivity.class));
-//            }
-//        });
-//
-//        settingsButton.setZ(9);
-//        settingsButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                int visibility = settingsMenu.getVisibility();
-//                if (visibility == View.INVISIBLE) {
-//                    settingsMenu.setZ(8);
-//                    settingsMenu.setVisibility(View.VISIBLE);
-//                    settingsIntentLinks();
-//                } else if (visibility == View.VISIBLE) {
-//                    settingsMenu.setVisibility(View.INVISIBLE);
-//                }
-//            }
-//        });
-    }
-
-    /**
-     * Method manages the buttons (change difficulty, how to play, view completed) which
-     * governs which activity is accessed (button name respective).
-     * <p>
-     * It displays an alert if the user wishes to change their difficulty as this may
-     * effect their score via the Difficulty Bonus.
-     * <p>
-     * Called by generalActivityIntents()
-     */
-    private void settingsIntentLinks() {
-
-//        Button changeDifficultyButton;
-//        Button howToPlayButton;
-//        Button viewCompletedSongsButton;
-//
-//        changeDifficultyButton = findViewById(R.id.sChangeDifficultyButton);
-//        howToPlayButton = findViewById(R.id.sHowToPlayButton);
-//        viewCompletedSongsButton = findViewById(R.id.sViewCompletedSongsButton);
-//
-//        changeDifficultyButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                AlertDialogManager alert = new AlertDialogManager();
-//                alert.showAlertDialog(MapsActivity.this, null,
-//                        getString(R.string.sAlertChangeDifficultyMessage),
-//                        getString(R.string.sAlertChangeDifficultyButton),
-//                        true, new View.OnClickListener() {
-//                            @Override
-//                            public void onClick(View v) {
-//                                settingsMenu.setVisibility(View.INVISIBLE);
-//                                startActivity(new Intent(MapsActivity.this, DifficultyActivity.class));
-//                            }
-//                        });
-//            }
-//        });
-//
-//        howToPlayButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                settingsMenu.setVisibility(View.INVISIBLE);
-//                startActivity(new Intent(MapsActivity.this, HowToPlayActivity.class));
-//            }
-//        });
-//
-//        viewCompletedSongsButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                settingsMenu.setVisibility(View.INVISIBLE);
-//                startActivity(new Intent(MapsActivity.this, CompletedSongsActivity.class));
-//            }
-//        });
-
-    }
-
     /**
      * Method displays an alertManager to prompt the user to establish the location connection if it not
      * established or is not in high priority mode.The alertManager persists until the user has acted on
@@ -563,56 +389,5 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         return (locationMode == Settings.Secure.LOCATION_MODE_HIGH_ACCURACY);
 
     }
-
-//    /**
-//     * Overrides method to prevent the user accessing the last activity and allowing them the
-//     * option to quit the session. It also updates the users score to be submitted by the
-//     * Main Menu Activity.
-//     */
-//    @Override
-//    public void onBackPressed() {
-//        AlertDialogManager alert = new AlertDialogManager();
-//        alert.showAlertDialog(MapsActivity.this, null,
-//                getString(R.string.cQuitAlertHeader), getString(R.string.cQuitAlertButton),
-//                true, new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        int pointsToSubmit = accessGame.getPointsSystem().pointsToSubmit();
-//                        accessGame.setUsersScoreToSubmit(pointsToSubmit);
-//
-//                        startActivity(new Intent(MapsActivity.this, MainMenuActivity.class));
-//                    }
-//                });
-//    }
-
-//    /**
-//     * Overrides method to close the settings menu if anywhere outside the settings menu is touched
-//     * after it is opened. It also prevents other buttons being access whilst the collected word
-//     * overlay is displayed.
-//     */
-//    @Override
-//    public boolean dispatchTouchEvent(MotionEvent ev) {
-//
-//        //Close on touch outside for settings
-//        Rect settingsRect = new Rect();
-//        settingsMenu.getGlobalVisibleRect(settingsRect);
-//        boolean isClickInSettingsMenu = !settingsRect.contains((int) ev.getRawX(), (int) ev.getRawY());
-//        if (isClickInSettingsMenu && settingsMenu.getVisibility() == View.VISIBLE) {
-//            settingsMenu.setVisibility(View.INVISIBLE);
-//            return true;
-//        }
-//
-//        //Don't touch outside for Map Congrats Overlay
-//        Rect congratsRect = new Rect();
-//        congratsOverlay.getGlobalVisibleRect(congratsRect);
-//        boolean isClickOutsideOverlay = !congratsRect.contains((int) ev.getRawX(), (int) ev.getRawY());
-//        if (isClickOutsideOverlay && congratsOverlay.getVisibility() == View.VISIBLE) {
-//            return true;
-//        }
-//
-//        return super.dispatchTouchEvent(ev);
-//    }
-//}
-
 
 }
