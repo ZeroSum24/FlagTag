@@ -199,17 +199,6 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    /**
-     * Method builds the Google Api Client for use by the map
-     */
-//    private synchronized void buildGoogleApiClient() {
-//        mGoogleApiClient = new GoogleApiClient.Builder(this)
-//                .addConnectionCallbacks(this)
-//                .addOnConnectionFailedListener(this)
-//                .addApi(LocationServices.API)
-//                .build();
-//        mGoogleApiClient.connect();
-//    }
 
     @Override
     public void onConnectionSuspended(int flag) {
