@@ -162,9 +162,8 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         Log.e("MapUsingStart", "StartIsActive: " + true);
         if (this.mGoogleApiClient != null) {
             mGoogleApiClient.connect();
-            Log.e("apiClient", "Api client connected");
         }
-        Log.e("start", "start finished");
+
     }
 
     @Override
