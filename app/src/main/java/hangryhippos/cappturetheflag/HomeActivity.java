@@ -1,14 +1,18 @@
 package hangryhippos.cappturetheflag;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -25,10 +29,11 @@ public class HomeActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         View.OnClickListener {
 
+    private static final String TAG = "HomeActivity";
     public static final String APP_NAME = "Cappture the Flag";
     public static final String DISPLAY_NAME_KEY = "DisplayName";
-
-    private static final String TAG = "Main Menu";
+    private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
+    private boolean stopPermissionRequests;
 
     // Request code used to invoke sign in user interactions.
     private static final int RC_SIGN_IN = 9001;
@@ -48,7 +53,7 @@ public class HomeActivity extends AppCompatActivity
     // Set to false to require the user to click the button in order to sign in.
     private boolean mAutoStartSignInFlow = true;
 
-    private Button viewLeaderboardButton;
+    private ImageView viewLeaderboardButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,12 +73,12 @@ public class HomeActivity extends AppCompatActivity
         settings.setOnClickListener(this);
 
         //Check if the player has a name stored - if not then ask them to enter one
-        if (!checkDisplayName()){
+        if (!checkDisplayName()) {
             enterDisplayName();
         }
 
         //Check if an internet connection is available - if not send an alert dialog.
-        if (!isNetworkAvailable(this)){
+        if (!isNetworkAvailable(this)) {
             sendNetworkErrorDialog();
         }
 
@@ -83,18 +88,26 @@ public class HomeActivity extends AppCompatActivity
         {
             @Override
             public void onClick(View v) {
-                viewLeaderboardButton.setTextColor(getColor(R.color.colorIcons));
                 showLeaderboard();
             }
         });
 
+
+    }
+
+    @Override
+    protected void onResume() {
+        if (!checkPermissions()) {
+            requestPermissions();
+        }
+        super.onResume();
     }
 
 
     @Override
     public void onClick(View v) {
 
-        switch(v.getId()){
+        switch (v.getId()) {
             case R.id.btn_play:
                 Intent playIntent = new Intent(this, PlayActivity.class);
                 startActivity(playIntent);
@@ -220,7 +233,6 @@ public class HomeActivity extends AppCompatActivity
                     RC_LEADERBOARD_UI);
         } else {
             showSignInBar();
-            viewLeaderboardButton.setTextColor(getColor(R.color.colorPrimary_text));
         }
     }
 
@@ -249,7 +261,7 @@ public class HomeActivity extends AppCompatActivity
     }
 
 
-    private boolean isNetworkAvailable(Context context){
+    private boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
@@ -257,7 +269,7 @@ public class HomeActivity extends AppCompatActivity
 
 
     //use if a network connection is required for the selected option to work
-    private void sendNetworkErrorDialog(){
+    private void sendNetworkErrorDialog() {
         //with no internet, send an alert that will take user to settings or close the app.
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
         adb.setTitle(R.string.network_error);
@@ -281,18 +293,18 @@ public class HomeActivity extends AppCompatActivity
 
     // Checks if a display name is stored
     // Returns true if a name is stored, false otherwise
-    private boolean checkDisplayName(){
+    private boolean checkDisplayName() {
         SharedPreferences settings = this.getSharedPreferences(APP_NAME, Context.MODE_PRIVATE);
         return settings.getString(DISPLAY_NAME_KEY, null) != null;
     }
 
-    private void saveDisplayName(String name){
+    private void saveDisplayName(String name) {
         SharedPreferences.Editor editor = this.getSharedPreferences(APP_NAME, Context.MODE_PRIVATE).edit();
         editor.putString(DISPLAY_NAME_KEY, name);
         editor.apply();
     }
 
-    private void enterDisplayName(){
+    private void enterDisplayName() {
 
         final EditText input = new EditText(this);
 
@@ -310,9 +322,9 @@ public class HomeActivity extends AppCompatActivity
             @Override
             public void onShow(final DialogInterface dialog) {
                 Button b = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
-                b.setOnClickListener(new View.OnClickListener(){
+                b.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(View view){
+                    public void onClick(View view) {
                         String displayName = input.getText().toString();
                         //Checks that a string has been entered
                         if (displayName.length() > 0) {
@@ -327,4 +339,74 @@ public class HomeActivity extends AppCompatActivity
         dialog.show();
     }
 
+    //Check that location permissions are granted
+    private boolean checkPermissions() {
+        int permissionState = ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION);
+        return permissionState == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermissions() {
+        boolean shouldProvideRationale =
+                ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION);
+
+        // Provide an additional rationale to the user. This would happen if the user denied the
+        // request previously, but didn't check the "Don't ask again" checkbox.
+        if (shouldProvideRationale) {
+            showLocationRationaleDialog();
+        } else {
+            // Request permission. It's possible this can be auto answered if device policy
+            // sets the permission in a given state or the user denied the permission
+            // previously and checked "Never ask again".
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_PERMISSIONS_REQUEST_CODE);
+        }
+    }
+
+    /**
+     * Callback received when a permissions request has been completed.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
+            if (grantResults.length <= 0) {
+                // If user interaction was interrupted, the permission request is cancelled and you
+                // receive empty arrays
+                requestPermissions();
+            } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //Refresh the view so that the home activity is updated.
+                finish();
+                startActivity(getIntent());
+            } else {
+                Log.d(TAG, "Permission was denied");
+                // Permission denied.
+                // Notify the user that they have denied a core permission
+                requestPermissions();
+            }
+        }
+    }
+
+    private void showLocationRationaleDialog() {
+        Log.d(TAG, "show location rationale dialog called");
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        adb.setTitle(R.string.location_error);
+        adb.setMessage(R.string.msg_location_rationale);
+        adb.setPositiveButton(R.string.okay, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ActivityCompat.requestPermissions(HomeActivity.this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        REQUEST_PERMISSIONS_REQUEST_CODE);
+                dialog.dismiss();
+            }
+        });
+        AlertDialog ad = adb.create();
+        ad.setCancelable(false);
+        ad.show();
+    }
+
 }
+

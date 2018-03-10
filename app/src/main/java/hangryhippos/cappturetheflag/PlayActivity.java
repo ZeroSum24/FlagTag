@@ -11,6 +11,7 @@ import android.nfc.NfcAdapter;
 import android.nfc.NfcAdapter.CreateNdefMessageCallback;
 import android.nfc.NfcEvent;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Parcelable;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
@@ -161,6 +162,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         if (this.mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
+
     }
 
     @Override
@@ -285,6 +287,10 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
                 NfcAdapter.EXTRA_NDEF_MESSAGES);
         // only one message sent during the beam
         NdefMessage msg = (NdefMessage) rawMsgs[0];
+        Toast.makeText(this, (msg.getRecords()[0].getPayload().toString()), Toast.LENGTH_SHORT).show();
+        if (((msg.getRecords()[0].getPayload())).toString()=="Tag, you're it!"){
+            System.out.println("Tagged!");
+        }
         // record 0 contains the MIME type, record 1 is the AAR, if present
     }
     /**

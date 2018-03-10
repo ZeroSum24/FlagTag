@@ -1,9 +1,7 @@
 package hangryhippos.cappturetheflag.database;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.mongodb.Block;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 
 import org.bson.Document;
 
@@ -12,14 +10,14 @@ import java.util.ArrayList;
 import hangryhippos.cappturetheflag.database.obj.Team;
 import hangryhippos.cappturetheflag.database.obj.Utils;
 
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Projections.exclude;
 import static com.mongodb.client.model.Projections.excludeId;
 import static com.mongodb.client.model.Projections.fields;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Updates.addToSet;
-import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.pull;
+import static com.mongodb.client.model.Updates.set;
 
 /**
  * Used by a player when they are in a live game to update their state, and
@@ -61,22 +59,31 @@ public class LiveGameConnection {
         collection.findOneAndUpdate(eq("_id", 0), pull(Team.blueTeam.name() + ".members", eq("deviceID", this.deviceID)));
     }
 
-    public ArrayList<String> getTeamMemberIDs(final Team team)
-    {
+    public ArrayList<String> getTeamMemberIDs(final Team team) {
         ArrayList<String> arrayList = new ArrayList<>();
 
         Document d = (Document) collection.find(eq("_id", 0)).projection(fields(include(team.name() + ".members.deviceID"), excludeId())).first();
         Document teamDoc = (Document) d.get(team.name());
         ArrayList<Document> deviceDocs = (ArrayList<Document>) teamDoc.get("members");
 
-        for(Document doc : deviceDocs)
-        {
+        for (Document doc : deviceDocs) {
             arrayList.add(doc.getString("deviceID"));
         }
 
-       return arrayList;
+        return arrayList;
+    }
 
+    public void updatePlayerPos(LatLng latLng) {
+        ArrayList<Double> coords = new ArrayList<>();
+        coords.add(latLng.latitude);
+        coords.add(latLng.longitude);
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.location.coordinates", coords));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.location.coordinates", coords));
+    }
 
+    public void setJailStatus(boolean inJail) {
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.isJailed", inJail));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.isJailed", inJail));
     }
 
 
