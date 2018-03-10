@@ -2,17 +2,26 @@ package hangryhippos.cappturetheflag;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Rect;
+import android.content.Intent;
 import android.location.Location;
+import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter;
+import android.nfc.NfcAdapter.CreateNdefMessageCallback;
+import android.nfc.NfcEvent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RelativeLayout;
-
-
+import android.widget.TextView;
+import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -25,12 +34,26 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.nio.charset.Charset;
 
 public class PlayActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener,
+        CreateNdefMessageCallback {
 
+
+
+    private Button lyricsButton;
+    private Button guessButton;
+    private RelativeLayout settingsMenu;
+    private View congratsOverlay;
+    public NfcAdapter mNfcAdapter;
     private GoogleMap mMap;
     private SupportMapFragment mapFragment;
     private GoogleApiClient mGoogleApiClient;
@@ -38,6 +61,9 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean mLocationPermissionGranted = false;
     private Location mLastLocation;
     private static final String TAG = "MapsActivity";
+    private TextView textView;
+    private List<Marker> markerList;
+
 
 
     @Override
@@ -45,6 +71,14 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
 
+        //Initialises Difficulty and Points Systems
+        mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        if (mNfcAdapter == null) {
+            Toast.makeText(this, "NFC is not available", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+        Log.e("MapsActivityCreate", "DifficultyLevel level: ");
 
         //Obtain the SupportMapFragment
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.maps);
@@ -203,6 +237,25 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
+    public NdefMessage createNdefMessage(NfcEvent event) {
+        String text = ("Tag, you're it!");
+        NdefMessage msg = new NdefMessage(
+                new NdefRecord[] { createMimeRecord(
+                        "application/com.example.android.beam", text.getBytes())
+                        /**
+                         * The Android Application Record (AAR) is commented out. When a device
+                         * receives a push with an AAR in it, the application specified in the AAR
+                         * is guaranteed to run. The AAR overrides the tag dispatch system.
+                         * You can add it back in to guarantee that this
+                         * activity starts when receiving a beamed message. For now, this code
+                         * uses the tag dispatch system.
+                        */
+                        //,NdefRecord.createApplicationRecord("com.example.android.beam")
+                });
+        return msg;
+    }
+
+    @Override
     public void onConnectionFailed(ConnectionResult result) {
         /* An unresolvable error has occurred and a connection to Google APIs
          * could not be established. Display an error message, or handle
@@ -220,7 +273,21 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
     }
-
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Check to see that the Activity started due to an Android Beam
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
+            processIntent(getIntent());
+        }
+    }
+    void processIntent(Intent intent) {
+        Parcelable[] rawMsgs = intent.getParcelableArrayExtra(
+                NfcAdapter.EXTRA_NDEF_MESSAGES);
+        // only one message sent during the beam
+        NdefMessage msg = (NdefMessage) rawMsgs[0];
+        // record 0 contains the MIME type, record 1 is the AAR, if present
+    }
     /**
      * Method displays an alertManager to prompt the user to establish the location connection if it not
      * established or is not in high priority mode.The alertManager persists until the user has acted on
@@ -261,6 +328,17 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
 //                        }
 //                    });
 //        }
+    }
+    /**
+     * Creates a custom MIME type encapsulated in an NDEF record
+     *
+     * @param mimeType
+     */
+    public NdefRecord createMimeRecord(String mimeType, byte[] payload) {
+        byte[] mimeBytes = mimeType.getBytes(Charset.forName("US-ASCII"));
+        NdefRecord mimeRecord = new NdefRecord(
+                NdefRecord.TNF_MIME_MEDIA, mimeBytes, new byte[0], payload);
+        return mimeRecord;
     }
 
     /**

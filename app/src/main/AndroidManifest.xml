@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS NETWORK STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.NFC"/>
+    <uses-feature android:name ="android.hardware.nfc"/>
 
     <application
         android:allowBackup="true"
@@ -28,12 +30,15 @@
         <activity
             android:name=".PlayActivity"
             android:label="@string/title_activity_play"
+            android:parentActivityName=".HomeActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".HelpActivity">
-
+        <activity
+            android:name=".HelpActivity"
+            android:parentActivityName=".HomeActivity">
         </activity>
-        <activity android:name=".SettingsActivity">
-
+        <activity
+            android:name=".SettingsActivity"
+            android:parentActivityName=".HomeActivity">
         </activity>
 
         <meta-data android:name="com.google.android.geo.API_KEY"
