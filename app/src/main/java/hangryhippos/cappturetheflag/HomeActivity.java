@@ -33,5 +33,9 @@ public class HomeActivity extends AppCompatActivity implements
             Intent helpIntent = new Intent(this, HelpActivity.class);
             startActivity(helpIntent);
         }
+        if (v.getId() == R.id.btn_settings) {
+            Intent settingsIntent = new Intent(this, SettingsActivity.class);
+            startActivity(settingsIntent);
+        }
     }
 }
