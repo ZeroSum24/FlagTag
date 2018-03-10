@@ -6,16 +6,18 @@
     android:orientation="vertical">
 
     <EditText
-        android:id="@+id/@+idz/DisplayName"
+        android:id="@+id/DisplayName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
         android:inputType="textPersonName"
+        android:labelFor="@+id/DisplayName"
         android:singleLine="false"
+        android:text="@id/DisplayName"
         tools:text="Name" />
 
     <Switch
-        android:id="@+id/4G"
+        android:id="@+id/ConnectionType"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:text="Switch" />
