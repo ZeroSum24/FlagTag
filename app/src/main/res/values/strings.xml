@@ -9,4 +9,11 @@
     <string name="home">Home</string>
     <string name="title_activity_play">PlayActivity</string>
     <string name="help">Help</string>
+    <string name="network_error">Network Error</string>
+    <string name="internet_settings">Internet Settings</string>
+    <string name="cancel">Cancel</string>
+    <string name="msg_data_required">A data connection is required!</string>
+    <string name="enter_name">Enter your name</string>
+    <string name="msg_enter_name">This will be visible to other players</string>
+    <string name="okay">Okay</string>
 </resources>
