@@ -56,10 +56,9 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         //in order to keep the user interface responsive
         mapFragment.getMapAsync(this);
 
-        // Create an instance of GoogleAPIClient.
-        if (mGoogleApiClient == null) {
-            buildGoogleApiClient();
-        }
+        mGoogleApiClient = GoogleApiHandler.getInstance(this.getApplicationContext()).getApiClient();
+        GoogleApiHandler.getInstance(this).addConnectionCallbacks(this);
+        GoogleApiHandler.getInstance(this).addOnConnectionFailedListener(this);
 
         Log.e("LocationAPICreate", "LocationAPI null: " + (mGoogleApiClient == null));
         Log.e("LocationOnCreate", "Location null: " + (mLastLocation == null));
@@ -203,14 +202,14 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     /**
      * Method builds the Google Api Client for use by the map
      */
-    private synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-        mGoogleApiClient.connect();
-    }
+//    private synchronized void buildGoogleApiClient() {
+//        mGoogleApiClient = new GoogleApiClient.Builder(this)
+//                .addConnectionCallbacks(this)
+//                .addOnConnectionFailedListener(this)
+//                .addApi(LocationServices.API)
+//                .build();
+//        mGoogleApiClient.connect();
+//    }
 
     @Override
     public void onConnectionSuspended(int flag) {
