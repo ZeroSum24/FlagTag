@@ -10,11 +10,11 @@ import android.util.Pair;
 public class Zone
 {
     private Pair<Double, Double> topLeft;
-    private Pair<Double, Double> topRight;
+    private Pair<Double, Double> bottomRight;
 
-    public Zone(Pair<Double, Double> topLeft, Pair<Double, Double> topRight) {
+    public Zone(Pair<Double, Double> topLeft, Pair<Double, Double> bottomRight) {
         this.topLeft = topLeft;
-        this.topRight = topRight;
+        this.bottomRight = bottomRight;
     }
 
     public Pair<Double, Double> getTopLeft() {
@@ -22,6 +22,6 @@ public class Zone
     }
 
     public Pair<Double, Double> getTopRight() {
-        return topRight;
+        return bottomRight;
     }
 }
