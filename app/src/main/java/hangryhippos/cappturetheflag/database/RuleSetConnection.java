@@ -1,50 +1,39 @@
-package hangryhippos.cappturetheflag.database.obj;
+package hangryhippos.cappturetheflag.database;
 
-import android.annotation.SuppressLint;
 import android.support.v4.util.Pair;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 
 import org.bson.Document;
 
 import java.util.ArrayList;
 
+import hangryhippos.cappturetheflag.database.obj.RuleSet;
+import hangryhippos.cappturetheflag.database.obj.Zone;
+
 /**
- * Connects to database and retrieves data
+ * Created by colin on 10/03/18.
  */
 
-public class DatabaseConnection
+public class RuleSetConnection
 {
-    private static final String TAG = "DatabaseConnection";
+    private DatabaseConnection connection;
 
-    @SuppressLint("AuthLeak")
-    private static final String URI_STRING = "mongodb+srv://melon:rCgSxW5DHrO5PcWn@cluster0-zy4zv.mongodb.net";
-    private static final String DB_NAME = "ctf";
     private static final String COLLECTION_NAME_RULES = "game_rules";
-
-    private MongoClientURI uri;
-    private MongoClient mongoClient;
-    private MongoDatabase mongoDatabase;
-
     private static final String TOP_LEFT = "topLeft";
     private static final String BOTTOM_RIGHT = "bottomRight";
 
 
-    public DatabaseConnection()
+    public RuleSetConnection(DatabaseConnection connection)
     {
-        uri = new MongoClientURI(URI_STRING);
-        mongoClient = new MongoClient(uri);
-        mongoDatabase = mongoClient.getDatabase(DB_NAME);
-            }
+        this.connection = connection;
+    }
 
     public RuleSet getRuleSet()
     {
         try
         {
-            MongoCollection collection = mongoDatabase.getCollection(COLLECTION_NAME_RULES);
+            MongoCollection collection = connection.getMongoDatabase().getCollection(COLLECTION_NAME_RULES);
             Document d = (Document) collection.find().first();
 
             int scoreLimit = d.getInteger("scoreLimit");
@@ -64,7 +53,7 @@ public class DatabaseConnection
         }
         catch(Exception e)
         {
-           // Log.e(TAG, e.getMessage());
+            // Log.e(TAG, e.getMessage());
             System.out.println(e.getMessage());
         }
 
@@ -94,5 +83,15 @@ public class DatabaseConnection
             return null;
         }
 
+    }
+
+    public DatabaseConnection getConnection()
+    {
+        return connection;
+    }
+
+    public void setConnection(DatabaseConnection connection)
+    {
+        this.connection = connection;
     }
 }
