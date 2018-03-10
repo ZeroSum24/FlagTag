@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Cappture The Flag</string>
+    <string name="title_activity_main">MainActivity</string>
 </resources>
