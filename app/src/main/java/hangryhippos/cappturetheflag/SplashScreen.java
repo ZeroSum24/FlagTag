@@ -18,7 +18,7 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class SplashScreen extends AppCompatActivity {
 
-    private final int SPLASH_DISPLAY_LENGTH = 1000;
+    private final int SPLASH_DISPLAY_LENGTH = 0;//1000;
     private GoogleApiClient mGoogleApiClient;
 
     @Override
