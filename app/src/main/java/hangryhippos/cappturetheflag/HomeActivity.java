@@ -1,14 +1,18 @@
 package hangryhippos.cappturetheflag;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -18,9 +22,11 @@ import android.widget.ImageView;
 
 public class HomeActivity extends AppCompatActivity implements
         View.OnClickListener{
-
+    private static final String TAG = "HomeActivity";
     public static final String APP_NAME = "Cappture the Flag";
     public static final String DISPLAY_NAME_KEY = "DisplayName";
+    private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
+    private boolean stopPermissionRequests;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +53,16 @@ public class HomeActivity extends AppCompatActivity implements
             sendNetworkErrorDialog();
         }
 
+
+
+    }
+
+    @Override
+    protected void onResume(){
+        if (!checkPermissions()){
+            requestPermissions();
+        }
+        super.onResume();
     }
 
 
@@ -147,6 +163,75 @@ public class HomeActivity extends AppCompatActivity implements
         });
 
         dialog.show();
+    }
+
+    //Check that location permissions are granted
+    private boolean checkPermissions(){
+        int permissionState = ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION);
+        return permissionState == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermissions() {
+        boolean shouldProvideRationale =
+                ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION);
+
+        // Provide an additional rationale to the user. This would happen if the user denied the
+        // request previously, but didn't check the "Don't ask again" checkbox.
+        if (shouldProvideRationale) {
+            showLocationRationaleDialog();
+        } else {
+            // Request permission. It's possible this can be auto answered if device policy
+            // sets the permission in a given state or the user denied the permission
+            // previously and checked "Never ask again".
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_PERMISSIONS_REQUEST_CODE);
+        }
+    }
+
+    /**
+     * Callback received when a permissions request has been completed.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
+            if (grantResults.length <= 0) {
+                // If user interaction was interrupted, the permission request is cancelled and you
+                // receive empty arrays
+                requestPermissions();
+            } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //Refresh the view so that the home activity is updated.
+                finish();
+                startActivity(getIntent());
+            } else {
+                Log.d(TAG, "Permission was denied");
+                // Permission denied.
+                // Notify the user that they have denied a core permission
+                requestPermissions();
+            }
+        }
+    }
+
+    private void showLocationRationaleDialog(){
+        Log.d(TAG, "show location rationale dialog called");
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        adb.setTitle(R.string.location_error);
+        adb.setMessage(R.string.msg_location_rationale);
+        adb.setPositiveButton(R.string.okay, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ActivityCompat.requestPermissions(HomeActivity.this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        REQUEST_PERMISSIONS_REQUEST_CODE);
+                dialog.dismiss();
+            }
+        });
+        AlertDialog ad = adb.create();
+        ad.setCancelable(false);
+        ad.show();
     }
 
 }

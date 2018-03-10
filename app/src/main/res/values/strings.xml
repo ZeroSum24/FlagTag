@@ -19,4 +19,8 @@
     <string name="format_name">Name: %1$s</string>
     <string name="connection_type">Connection Type</string>
     <string name="change">Change</string>
+    <string name="location_error">Location Error</string>
+    <string name="msg_location_rationale">Access to your location is required for the basic gameplay -
+        allowing you to see your teammates, where the flag is and special item boxes.</string>
+    <string name="msg_location_permission_denied">The game cannot be played without access to your location.</string>
 </resources>
