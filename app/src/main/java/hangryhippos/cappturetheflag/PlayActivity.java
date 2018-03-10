@@ -2,11 +2,8 @@ package hangryhippos.cappturetheflag;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-<<<<<<< HEAD
 import android.graphics.Rect;
 import android.content.Intent;
-=======
->>>>>>> 5891ae15fda9b7e0e08e816dacddd75d7339acfc
 import android.location.Location;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
@@ -21,14 +18,10 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RelativeLayout;
-<<<<<<< HEAD
 import android.widget.TextView;
 import android.widget.Toast;
-=======
-
->>>>>>> 5891ae15fda9b7e0e08e816dacddd75d7339acfc
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -40,15 +33,12 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLngBounds;
-<<<<<<< HEAD
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.nio.charset.Charset;
-=======
->>>>>>> 5891ae15fda9b7e0e08e816dacddd75d7339acfc
 
 public class PlayActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -56,15 +46,13 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         LocationListener,
         CreateNdefMessageCallback {
 
-<<<<<<< HEAD
+
 
     private Button lyricsButton;
     private Button guessButton;
     private RelativeLayout settingsMenu;
     private View congratsOverlay;
     public NfcAdapter mNfcAdapter;
-=======
->>>>>>> 5891ae15fda9b7e0e08e816dacddd75d7339acfc
     private GoogleMap mMap;
     private SupportMapFragment mapFragment;
     private GoogleApiClient mGoogleApiClient;
@@ -72,11 +60,9 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean mLocationPermissionGranted = false;
     private Location mLastLocation;
     private static final String TAG = "MapsActivity";
-<<<<<<< HEAD
     private TextView textView;
     private List<Marker> markerList;
-=======
->>>>>>> 5891ae15fda9b7e0e08e816dacddd75d7339acfc
+
 
 
     @Override
