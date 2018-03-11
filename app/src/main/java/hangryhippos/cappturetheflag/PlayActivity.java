@@ -15,7 +15,9 @@ import android.nfc.NfcEvent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Parcelable;
+import android.os.Process;
 import android.provider.Settings;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
@@ -29,6 +31,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.games.Game;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -50,6 +53,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.nio.charset.Charset;
 import java.util.Timer;
+import java.util.concurrent.TimeoutException;
 
 import hangryhippos.cappturetheflag.database.obj.Item;
 import hangryhippos.cappturetheflag.database.obj.Player;
@@ -155,8 +159,23 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
         if (mNfcAdapter == null) {
             Toast.makeText(this, "NFC is not available", Toast.LENGTH_LONG).show();
-            finish();
-            return;
+        }
+        else {
+            String text = ("Tag, you're it!");
+            NdefMessage msg = new NdefMessage(
+                    new NdefRecord[]{createMimeRecord(
+                            "application/com.example.android.beam", text.getBytes())
+                            /**
+                             * The Android Application Record (AAR) is commented out. When a device
+                             * receives a push with an AAR in it, the application specified in the AAR
+                             * is guaranteed to run. The AAR overrides the tag dispatch system.
+                             * You can add it back in to guarantee that this
+                             * activity starts when receiving a beamed message. For now, this code
+                             * uses the tag dispatch system.
+                            */
+                            //,NdefRecord.createApplicationRecord("com.example.android.beam")
+                    });
+            mNfcAdapter.setNdefPushMessageCallback(this, this);
         }
         Log.e("MapsActivityCreate", "DifficultyLevel level: ");
 
@@ -348,15 +367,6 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         Log.d("New Location", "Lat: " + current.getLatitude() + "Lng : " + current.getLongitude());
         Location target = new Location("target");
 
-        // If the player was tagged, check they are still in the area
-        if (playerTagged){
-            // If they aren't (or are on their way) reset the timer
-            if (!playerInRespawnArea(respawnArea)){
-                stopCountDownTimer();
-            } else if (timerStatus == TimerStatus.STOPPED){
-                startCountDownTimer();
-            }
-        }
         //If player is out of bounds, allow them to go out a bit (may be a mistake)
         if (playerOutOfBounds()){
             if (outOfBoundsGrace > 0) outOfBoundsGrace--;
@@ -418,16 +428,14 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         }
         // Play the game normally if possible
         if (gamePlayingNormally) normalLoop();
-        if (playerTagged)
+        if (playerTagged){
+
+        }
     }
 
     private void normalLoop(){
         while (gamePlayingNormally)
             if (playerTagged){
-                setContentView(R.layout.countdown_layout);
-                initCountdownValues();
-                //NB not starting timer yet(should be triggered after next location update
-                // - will only get tagged far away from respawn zone (so would take time to reach)
                 break;
             }
             if (flagRevealed && !flagVisible){
@@ -463,7 +471,9 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void taggedLoop(){
         while (playerTagged){
-            if 
+            if (true){
+
+            }
         }
     }
 
@@ -486,7 +496,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         NdefMessage msg = (NdefMessage) rawMsgs[0];
         Toast.makeText(this, (msg.getRecords()[0].getPayload().toString()), Toast.LENGTH_SHORT).show();
         if (((msg.getRecords()[0].getPayload())).toString().equals("Tag, you're it!")){
-            System.out.println("Tagged!");
+            Toast.makeText(this, (msg.getRecords()[0].getPayload().toString()), Toast.LENGTH_SHORT).show();
         }
         // record 0 contains the MIME type, record 1 is the AAR, if present
     }
@@ -670,7 +680,6 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }.start();
         countDownTimer.start();
-
     }
 
     private void stopCountDownTimer(){
@@ -775,11 +784,6 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
                      new LatLng(x2, y1));
     }
 
-    private void clearMap(){
-        mMap.clear();
-        flagVisible = false;
-
-    }
 
     private void refreshMap(){
         mMap.clear();
