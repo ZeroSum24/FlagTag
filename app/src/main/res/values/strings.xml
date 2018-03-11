@@ -75,4 +75,18 @@
     <string name="common">Common</string>
     <string name="rare">Rare</string>
 
+    <!--Strings for Location checking-->
+    <string name="mIntAndLocHeader">Internet and Location Errors</string>
+    <string name="mIntAndLocMessage">Please connect both Internet and Location connections</string>
+    <string name="mInternetHeader">Internet Connection Error</string>
+    <string name="mInternetMessage">Please connect to a working Internet connection</string>
+    <string name="mLocationHeader">Location Settings Error</string>
+    <string name="mLocationMessage">Please connect your Location connection</string>
+    <string name="mLocationHPErrorHeader">Adjust Location Mode</string>
+    <string name="mLocationHPErrorMessage">Songle heavily relies on location accuracy.\n\nPlease ensure the Location Mode in  Settings is set to High Accuracy.</string>
+    <string name="retry">RETRY</string>
+    <string name="cQuitAlertMMHeader">Do you wish to quit the game?</string>
+    <string name="cQuitAlertHeader">Do you wish to quit the session?</string>
+    <string name="cQuitAlertButton">Quit</string>
+    <string name="cQuitCancelButton">Cancel</string>
 </resources>
