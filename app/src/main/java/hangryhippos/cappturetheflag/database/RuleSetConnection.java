@@ -52,7 +52,6 @@ public class RuleSetConnection
         catch(Exception e)
         {
             // Log.e(TAG, e.getMessage());
-            System.out.println(e.getMessage());
         }
 
         return null;
