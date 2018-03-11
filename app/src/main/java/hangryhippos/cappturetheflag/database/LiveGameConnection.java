@@ -14,9 +14,6 @@ import hangryhippos.cappturetheflag.database.obj.Utils;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Projections.excludeId;
-import static com.mongodb.client.model.Projections.fields;
-import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Updates.addToSet;
 import static com.mongodb.client.model.Updates.inc;
 import static com.mongodb.client.model.Updates.pull;
@@ -42,6 +39,10 @@ public class LiveGameConnection {
         this.collection = new DatabaseConnection().getMongoDatabase().getCollection(GAME_SESSION_COLLECTION_NAME);
     }
 
+    /**
+     * Add player to game
+     * @param team Team for user to be join
+     */
     public void addPlayerToGame(Team team) {
         Document memberDoc = new Document();
         memberDoc.put("deviceID", deviceID);
@@ -57,12 +58,18 @@ public class LiveGameConnection {
         collection.findOneAndUpdate(eq("_id", 0), addToSet(team.name() + ".members", memberDoc));
     }
 
+    /**
+     * Removes user from members list respective team
+     */
     public void removePlayerFromGame() {
         collection.findOneAndUpdate(eq("_id", 0), pull(Team.redTeam.name() + ".members", eq("deviceID", this.deviceID)));
         collection.findOneAndUpdate(eq("_id", 0), pull(Team.blueTeam.name() + ".members", eq("deviceID", this.deviceID)));
     }
 
-
+    /**
+     * Update the player's position
+     * @param latLng New position
+     */
     public void updatePlayerPos(LatLng latLng) {
         ArrayList<Double> coords = new ArrayList<>();
         coords.add(latLng.latitude);
@@ -71,53 +78,88 @@ public class LiveGameConnection {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.location.coordinates", coords));
     }
 
+    /**
+     * Set whether the user is in jail or not
+     * @param inJail True if in jail, otherwise
+     */
     public void setJailStatus(boolean inJail) {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.isJailed", inJail));
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.isJailed", inJail));
     }
 
+    /**
+     * Set the number of flag captures the user has
+     * @param num Number of flag captures
+     */
     public void setNumberOfCaptures(int num) {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.numOfCaps", num));
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.numOfCaps", num));
     }
 
+    /**
+     * Increment the user's number of flag captures by one
+     */
     public void incrementNumberOfCaptures() {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), inc("redTeam.members.$.numOfCaps", 1));
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), inc("blueTeam.members.$.numOfCaps", 1));
     }
 
+    /**
+     * Set the number of players the user has tagged
+     * @param num Number of players tagged
+     */
     public void setNumberOfTags(int num) {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.numOfTags", num));
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.numOfTags", num));
     }
 
+    /**
+     * Increment the user's tag count by one
+     */
     public void incrementNumberOfTags() {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), inc("redTeam.members.$.numOfTags", 1));
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), inc("blueTeam.members.$.numOfTags", 1));
     }
 
+    /**
+     * Set the number of times the user has been put in jail
+     * @param num Number of times in jail
+     */
     public void setNumberOfJails(int num) {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.numOfJails", num));
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.numOfJails", num));
     }
 
+    /**
+     * Increment the number of times the user has been in jail by one
+     */
     public void incrementNumberOfJails() {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), inc("redTeam.members.$.numOfJails", 1));
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), inc("blueTeam.members.$.numOfJails", 1));
     }
 
+    /**
+     * Set the item the player is currently holding
+     * @param name Name of item
+     */
     public void setPlayerItem(String name) {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.item", name));
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.item", name));
     }
 
+    /**
+     * Remove the current item from the player
+     */
     public void removeItemFromPlayer() {
 
         collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.item", null));
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.item", null));
     }
 
-
+    /**
+     * Retrieve the list of players currently in the game session
+     * @return List of current players
+     */
     public ArrayList<Player> getPlayers()
     {
         final ArrayList<Player> players = new ArrayList<>();
@@ -149,6 +191,12 @@ public class LiveGameConnection {
         return players;
     }
 
+    /**
+     * Private method for generating a player object from a member BSON object
+     * @param doc The BSON document representing a "member"
+     * @param team The team the player is on
+     * @return Player object
+     */
     private Player genPlayer(Document doc, Team team)
     {
         String deviceID = doc.getString("deviceID");
@@ -164,6 +212,15 @@ public class LiveGameConnection {
         LatLng pos = new LatLng(coords.get(0), coords.get(1));
 
         return new Player(deviceID, displayName, team, isJailed, numOfCaps, numOfTags, numOfJails, item, pos);
+    }
+
+    /**
+     * Set whether game is in progress or not
+     * @param inProgress Whether game is in progress or not
+     */
+    public void setGameInProgress(boolean inProgress)
+    {
+        collection.findOneAndUpdate(eq("_id", 0), set("in_progress", inProgress));
     }
 
 
