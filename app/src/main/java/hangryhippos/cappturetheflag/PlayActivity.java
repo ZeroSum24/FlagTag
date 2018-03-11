@@ -163,7 +163,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             Toast.makeText(this, "NFC is not available", Toast.LENGTH_LONG).show();
         }
         else {
-            String text = ("Tag, you're it!");
+            String text = ("tag, you're it!");
             NdefMessage msg = new NdefMessage(
                     new NdefRecord[]{createMimeRecord(
                             "application/com.example.android.beam", text.getBytes())
@@ -389,7 +389,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public NdefMessage createNdefMessage(NfcEvent event) {
-        String text = ("Tag, you're it!");
+        String text = ("tag, you're it!");
         NdefMessage msg = new NdefMessage(
                 new NdefRecord[] { createMimeRecord(
                         "application/com.example.android.beam", text.getBytes())
@@ -500,7 +500,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         // only one message sent during the beam
         NdefMessage msg = (NdefMessage) rawMsgs[0];
         Toast.makeText(this, (msg.getRecords()[0].getPayload().toString()), Toast.LENGTH_SHORT).show();
-        if (((msg.getRecords()[0].getPayload())).toString().equals("Tag, you're it!")){
+        if (((msg.getRecords()[0].getPayload())).toString().equals("tag, you're it!")){
             Toast.makeText(this, (msg.getRecords()[0].getPayload().toString()), Toast.LENGTH_SHORT).show();
         }
         // record 0 contains the MIME type, record 1 is the AAR, if present
