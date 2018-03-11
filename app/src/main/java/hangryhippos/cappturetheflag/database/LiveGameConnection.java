@@ -149,6 +149,7 @@ public class LiveGameConnection {
         return players;
     }
 
+
     private Player genPlayer(Document doc, Team team)
     {
         String deviceID = doc.getString("deviceID");
@@ -164,6 +165,11 @@ public class LiveGameConnection {
         LatLng pos = new LatLng(coords.get(0), coords.get(1));
 
         return new Player(deviceID, displayName, team, isJailed, numOfCaps, numOfTags, numOfJails, item, pos);
+    }
+
+    public void setGameInProgress(boolean inProgress)
+    {
+        collection.findOneAndUpdate(eq("_id", 0), set("in_progress", inProgress));
     }
 
 
