@@ -42,6 +42,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
@@ -184,7 +185,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         //Obtain the SupportMapFragment
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.maps);
 
-
+        
         //Get notified when the map is ready to be used. Long-running activities are performed asynchronously
         //in order to keep the user interface responsive
         mapFragment.getMapAsync(this);
@@ -224,6 +225,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMinZoomPreference(16.0f);
+        mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.style_json));
 
         // Constrain the camera target to the Adelaide bounds.
 //        mMap.setLatLngBoundsForCameraTarget(EDINBURGH_MEADOWS);
@@ -244,7 +246,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         }
         // Add ‘‘My location’’ button to the user interface
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        mMap.getUiSettings().setCompassEnabled(true);
+        mMap.getUiSettings().setCompassEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.getUiSettings().setZoomControlsEnabled(false);
 
