@@ -20,6 +20,7 @@
     <string name="connection_type">Connection Type</string>
     <string name="change">Change</string>
 
+
     <!-- Strings for Google Play Sign in - Main Menu -->
     <string name="sign_in_explanation">Sign In with Google to access bonus features.</string>
     <string name="you_are_signed_in">You are signed in with Google.</string>
@@ -33,4 +34,7 @@
     <string name="msg_location_rationale">Access to your location is required for the basic gameplay -
         allowing you to see your teammates, where the flag is and special item boxes.</string>
     <string name="msg_location_permission_denied">The game cannot be played without access to your location.</string>
+
+
+
 </resources>

@@ -74,7 +74,7 @@ public class GameCreatorConnection {
 
             Document location = (Document) Utils.buildLocationDoc(startLocation.latitude, startLocation.longitude).get("location");
             memberDoc.put("location", location);
-            memberDoc.put("items", new ArrayList<>());
+            memberDoc.put("item", null);
             members.add(memberDoc);
         }
 

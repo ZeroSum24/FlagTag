@@ -294,6 +294,28 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             processIntent(getIntent());
         }
     }
+
+    private void refresh(){
+        // TODO
+        // send location to database
+        // if the player has been tagged, they must head back to respawn (can't see anything else)
+        //  - if the player needed to respawn and has entered the area, check that they are still there
+        //  - if they need to respawn and have moved away from the respawn, add time to the respawning and warn the player
+        //  - if they need to respawn but haven't entered the respawn area, keep disabled, but add no time penalty
+        //
+        // if player was not tagged then continue with the rest of the logic here:
+        // check if enemy flag revealed/hidden (store location on player's phone but keep secret)
+        // show enemy flag if revealed
+        // check if you're close to the flag
+        // reveal flag if the player is nearby
+        // if the flag was already revealed, and the player has waited 5 seconds nearby, collect the flag
+        // if the flag has been collected by either team, notify all users of the player(s) with the flag and where they are
+        // check if you're close to an item
+        // if you are, pick it up (and remove the item from the map)
+        //
+        // add logic for items as well? Leave for now
+    }
+
     void processIntent(Intent intent) {
         Parcelable[] rawMsgs = intent.getParcelableArrayExtra(
                 NfcAdapter.EXTRA_NDEF_MESSAGES);

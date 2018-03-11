@@ -37,12 +37,14 @@ Items are randomly distributed throughout the neutral zone. They disappear once 
 
 These items are:
 
- - Reveal locations of hidden flag (Passive)
+ - Reveal location(s) of hidden flag (Passive)
+ - Reveal locations of enemy players for 3 minutes (or until tagged by an enemy)
  - Halve time taken to pick up flag (Passive)
 - Move your flag to a random locations and create 2 dummy flags, which appear to the opposing team as real, but disappear once collected (Active).
 - Move your flag to a random location and hide it (Active|Hidden)
 - 1 time tag defence, plus 10 seconds invulnerability (Passive|Hidden)
 - 1 time tag defence, plus the player who tags you is instead removed from play. You cannot pickup flags when you have this power. (Passive|Hidden)
+
 
 ## Creating Game
 The first person to join a game is in charge of organising it. They can choose team names, approve new players and kick players. Anyone else can join afterwards, even in the middle of a game. Teams are assigned on an alternating basis (First player to join is team A, second player team B, third A Etc)
