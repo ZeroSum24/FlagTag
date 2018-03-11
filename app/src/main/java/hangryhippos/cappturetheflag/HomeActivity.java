@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -24,6 +25,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
 import com.google.example.games.basegameutils.BaseGameUtils;
+
+import hangryhippos.cappturetheflag.database.GameCreatorConnection;
 
 public class HomeActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
@@ -60,7 +63,6 @@ public class HomeActivity extends AppCompatActivity
         setContentView(R.layout.activity_home);
 
 
-
         ImageView play = findViewById(R.id.btn_play);
         play.setOnClickListener(this);
 
@@ -84,6 +86,13 @@ public class HomeActivity extends AppCompatActivity
         if (!isNetworkAvailable(this)) {
             sendNetworkErrorDialog();
         }
+
+        // RUN SHIT ON NEW THREAD
+//        if (GameCreatorConnection.isGameInProgress()) {
+//            Log.d(TAG, "Game in progress");
+//        } else {
+//            Log.d(TAG, "Game not in progress");
+//        }
 
     }
 
@@ -203,14 +212,14 @@ public class HomeActivity extends AppCompatActivity
         boolean apiIsEmpty = (mGoogleApiClient == null);
         Log.d(TAG, "Google Api Client is null: " + apiIsEmpty);
 
-            if (mGoogleApiClient == null) {
-                mGoogleApiClient = new GoogleApiClient.Builder(this)
-                        .addConnectionCallbacks(this)
-                        .addOnConnectionFailedListener(this)
-                        .addApi(Games.API).addScope(Games.SCOPE_GAMES)
-                        .build();
-            }
-            mGoogleApiClient.connect();
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                    .build();
+        }
+        mGoogleApiClient.connect();
     }
 
     /**
