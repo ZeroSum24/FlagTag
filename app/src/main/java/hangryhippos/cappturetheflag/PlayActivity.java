@@ -58,8 +58,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.nio.charset.Charset;
 import java.util.Timer;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
+import hangryhippos.cappturetheflag.database.LiveGameConnection;
 import hangryhippos.cappturetheflag.database.obj.Item;
 import hangryhippos.cappturetheflag.database.obj.Player;
 import hangryhippos.cappturetheflag.database.obj.Team;
@@ -955,7 +957,11 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             return "";
         }
     }
-
+    private void goToJail(){
+        if (playerInTeamZone()){
+            new LiveGameConnection(new LatLng (playerLocation.getLatitude(),playerLocation.getLongitude()),UUID.randomUUID().toString(),"HHHHHHHHH").setJailStatus(true);
+        }
+    }
     private void pickUpItem(String itemId){
         for (int i = 0; i < items.size(); i++){
             if (items.get(i).getId().equals(itemId)){

@@ -7,6 +7,7 @@ import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import hangryhippos.cappturetheflag.database.obj.Player;
 import hangryhippos.cappturetheflag.database.obj.Team;
