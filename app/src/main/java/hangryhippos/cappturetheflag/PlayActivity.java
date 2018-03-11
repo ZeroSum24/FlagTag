@@ -61,6 +61,7 @@ import java.util.Timer;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
+import hangryhippos.cappturetheflag.database.GameCreatorConnection;
 import hangryhippos.cappturetheflag.database.LiveGameConnection;
 import hangryhippos.cappturetheflag.database.obj.Item;
 import hangryhippos.cappturetheflag.database.obj.Player;
@@ -101,7 +102,6 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private Location playerLocation;
     // Indicates if the player has been tagged by an enemy
     private boolean playerTagged;
-
     // Shows the progress of the countdown
     private ProgressBar countdownProgress;
     // Length of time (in milliseconds that players have to wait to get released
@@ -149,6 +149,8 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
 
     private int blueScore = 0;
     private int redScore = 0;
+
+    private LiveGameConnection gameConnection;
 
     private enum GameMode{
         normal,
@@ -243,6 +245,19 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         Gson gson = new Gson();
         Type type = new TypeToken<Team>(){}.getType();
         playerTeam = gson.fromJson(jsonTeam, type);
+
+        boolean inProgress = bundle.getBoolean("newGame");
+        String uuid = UUID.randomUUID().toString();
+        String displayName = "HHHHHHH";
+
+        if(!inProgress) {
+            new GameCreatorConnection(extractLatLngFromLocation(playerLocation), uuid, displayName).registerNewGame(blueFlagLocations.get(0), redFlagLocations.get(0));
+        }
+
+        gameConnection = new LiveGameConnection(extractLatLngFromLocation(playerLocation),UUID.randomUUID().toString(),displayName);
+
+        if(inProgress)
+            gameConnection.addPlayerToGame(Team.redTeam);
 
         //TODO position is null to start with - fair enough?
         player = new Player(deviceID, playerName, playerTeam, false, 0, 0,
@@ -962,7 +977,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     }
     private void goToJail(){
         if (playerInTeamZone()){
-            new LiveGameConnection(new LatLng (playerLocation.getLatitude(),playerLocation.getLongitude()),UUID.randomUUID().toString(),"HHHHHHHHH").setJailStatus(true);
+            gameConnection.setJailStatus(true);
         }
     }
     private void pickUpItem(String itemId){

@@ -100,8 +100,9 @@
         You\'ll automatically join a game if there\'s one going on, but if no one else is playing, then grab your friends and get them to join the fun too!
         If you really want to read the boring rules (rather than figure it out as you go along) then press onward</string>
     <string name="hint_rules_title">How To Play</string>
-    <string name="hint_rules_msg">The rules are simple. There are three main zones - one belongs to your team, one belongs to the other team, and one zone is neutral.
-    Within your own zone there is a subzone (but more on that later). To win, you need to find your flag, which has been hidden somewhere in the other team's area.
-    You can run over there to get it - but watch out! </string>
+    <string name="hint_rules_msg">The rules are simple. There are three main zones you\'ll be able to see on the map - one belongs to your team, one belongs to the other team, and the middle zone is neutral.
+    Within your own zone there is a subzone (but more on that later). To win, you need to find your flag, which has been hidden somewhere in the other team\'s area.
+    You can run over there to get it - but watch out! If you're in the enemy zone and get tapped by one of them, you'll need to start again (be honest!).
+    To do this, you need to hold your phones together and then walk back to your own area</string>
 
 </resources>
