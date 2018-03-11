@@ -1,12 +1,14 @@
 package hangryhippos.cappturetheflag.database;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.mongodb.Block;
 import com.mongodb.client.MongoCollection;
 
 import org.bson.Document;
 
 import java.util.ArrayList;
 
+import hangryhippos.cappturetheflag.database.obj.Player;
 import hangryhippos.cappturetheflag.database.obj.Team;
 import hangryhippos.cappturetheflag.database.obj.Utils;
 
@@ -60,19 +62,6 @@ public class LiveGameConnection {
         collection.findOneAndUpdate(eq("_id", 0), pull(Team.blueTeam.name() + ".members", eq("deviceID", this.deviceID)));
     }
 
-    public ArrayList<String> getTeamMemberIDs(final Team team) {
-        ArrayList<String> arrayList = new ArrayList<>();
-
-        Document d = (Document) collection.find(eq("_id", 0)).projection(fields(include(team.name() + ".members.deviceID"), excludeId())).first();
-        Document teamDoc = (Document) d.get(team.name());
-        ArrayList<Document> deviceDocs = (ArrayList<Document>) teamDoc.get("members");
-
-        for (Document doc : deviceDocs) {
-            arrayList.add(doc.getString("deviceID"));
-        }
-
-        return arrayList;
-    }
 
     public void updatePlayerPos(LatLng latLng) {
         ArrayList<Double> coords = new ArrayList<>();
@@ -128,6 +117,54 @@ public class LiveGameConnection {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.item", null));
     }
 
+
+    public ArrayList<Player> getPlayers()
+    {
+        final ArrayList<Player> players = new ArrayList<>();
+
+        Block<Document> printBlock = new Block<Document>() {
+            @Override
+            public void apply(final Document document) {
+                Document redTeamDoc = (Document) document.get(Team.redTeam.name());
+                ArrayList<Document> redArray = (ArrayList<Document>) redTeamDoc.get("members");
+
+                for(Document doc : redArray)
+                {
+                    players.add(genPlayer(doc, Team.redTeam));
+                }
+
+                Document blueTeamDoc = (Document) document.get(Team.blueTeam.name());
+                ArrayList<Document> blueArray = (ArrayList<Document>) blueTeamDoc.get("members");
+
+                for(Document doc : blueArray)
+                {
+                    players.add(genPlayer(doc, Team.blueTeam));
+                }
+
+            }
+        };
+
+        collection.find(eq("_id", 0)).forEach(printBlock);
+
+        return players;
+    }
+
+    private Player genPlayer(Document doc, Team team)
+    {
+        String deviceID = doc.getString("deviceID");
+        String displayName = doc.getString("displayName");
+        boolean isJailed = doc.getBoolean("isJailed");
+        int numOfCaps = doc.getInteger("numOfCaps");
+        int numOfTags = doc.getInteger("numOfTags");
+        int numOfJails = doc.getInteger("numOfJails");
+        String item = doc.getString("item");
+
+        Document loc = (Document) doc.get("location");
+        ArrayList<Double> coords = (ArrayList<Double>) loc.get("coordinates");
+        LatLng pos = new LatLng(coords.get(0), coords.get(1));
+
+        return new Player(deviceID, displayName, team, isJailed, numOfCaps, numOfTags, numOfJails, item, pos);
+    }
 
 
 
