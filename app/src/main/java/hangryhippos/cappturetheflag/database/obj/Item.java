@@ -10,15 +10,15 @@ public class Item {
     private String id;
     private String name;
     private String description;
-    private int icon_id;
+    private String item_class;
     private LatLng position;
 
-    public Item(String id, String name, String description, int icon_id, LatLng position){
+    public Item(String id, String name, String description, String item_class, LatLng position){
         this.id = id;
         this.name = name;
         this.position = position;
         this.description = description;
-        this.icon_id = icon_id;
+        this.item_class = item_class;
     }
 
     public String getId(){
@@ -33,8 +33,8 @@ public class Item {
         return description;
     }
 
-    public int getIcon_id(){
-        return icon_id;
+    public String getItemClass(){
+        return item_class;
     }
 
     public LatLng getPosition(){

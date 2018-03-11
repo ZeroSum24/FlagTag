@@ -40,6 +40,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -84,11 +86,11 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             new LatLngBounds(new LatLng(55.940671, -3.193070), new LatLng(55.941288, -3.189714));
 
     // area where team 1 respawns
-    private LatLngBounds respawnZoneTeam1;
-    private LatLngBounds respawnZoneTeam2;
+    private LatLngBounds respawnZoneBlue;
+    private LatLngBounds respawnZoneRed;
     // team 1's area in general (covers respawn area too to make tagging easier)
-    private LatLngBounds zoneTeam1;
-    private LatLngBounds zoneTeam2;
+    private LatLngBounds zoneBlue;
+    private LatLngBounds zoneRed;
     private LatLngBounds neutralZone;
     // Gives the respawn area for the player's team
     // NB different to the respawn area for two teams as it changes depending on your team
@@ -97,8 +99,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private Location playerLocation;
     // Indicates if the player has been tagged by an enemy
     private boolean playerTagged;
-    // Indicates if the player is in their respawn area
-    private boolean playerInRespawnArea;
+
     // Shows the progress of the countdown
     private ProgressBar countdownProgress;
     // Length of time (in milliseconds that players have to wait to get released
@@ -144,17 +145,40 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     // all items on the map. Needs to be refreshed
     private ArrayList<Item> items;
 
-    private int friendlyScore = 0;
-    private int enemyScore = 0;
+    private int blueScore = 0;
+    private int redScore = 0;
+
+    private enum GameMode{
+        normal,
+        tagged,
+        reset,
+        ended
+    }
+
+    private GameMode currentGameMode = GameMode.normal;
+
+    private BitmapDescriptor ic_red_flag;
+    private BitmapDescriptor ic_blue_flag;
+    private BitmapDescriptor ic_common_item;
+    private BitmapDescriptor ic_rare_item;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
+        blueScore = 0;
+        redScore = 0;
+        //TODO get scores from server
+        displayScores();
 
         initialisePlayer();
         //TODO get flag lat/lngs from server - need to also refresh from server
+
+        ic_red_flag = BitmapDescriptorFactory.fromResource(R.drawable.ic_red_flag);
+        ic_blue_flag = BitmapDescriptorFactory.fromResource(R.drawable.ic_blue_flag);
+        ic_common_item = BitmapDescriptorFactory.fromResource(R.drawable.ic_item_normal);
+        ic_rare_item = BitmapDescriptorFactory.fromResource(R.drawable.ic_item_rare);
 
 
         //Initialises Difficulty and Points Systems
@@ -197,6 +221,16 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         Log.e("LocationOnCreate", "Location null: " + (mLastLocation == null));
 
 
+    }
+
+    private void displayScores(){
+        TextView tvBlueScore = findViewById(R.id.txt_view_blue_score);
+        TextView tvRedScore = findViewById(R.id.txt_view_red_score);
+        String formatScore = getString(R.string.format_score);
+        String strBlueScore = String.format(formatScore, String.valueOf(blueScore));
+        String strRedScore = String.format(formatScore, String.valueOf(redScore));
+        tvBlueScore.setText(strBlueScore);
+        tvRedScore.setText(strRedScore);
     }
 
     private void initialisePlayer(){
@@ -299,6 +333,35 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        //stop location updates when Activity is no longer active
+        if (mGoogleApiClient != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        }
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Check to see that the Activity started due to an Android Beam
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
+            processIntent(getIntent());
+        }
+        switch(currentGameMode) {
+            case normal:
+                normalLoop();
+                break;
+            case tagged:
+                taggedLoop();
+                break;
+            case reset:
+                break;
+            case ended:
+                break;
+        }
+    }
+
     protected void createLocationRequest(int priority) {
         // Set the parameters for the location request
         LocationRequest mLocationRequest = new LocationRequest();
@@ -378,6 +441,15 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             // has gone far/repeatedly out of bounds - send dialog warning.
             else sendOutOfBoundsDialog();
         }
+        // If the player is carrying the flag, update the real flag's location.
+        if (holdingFlag){
+            LatLng newFlagLocation = extractLatLngFromLocation(playerLocation);
+            if (playerTeam.equals(Team.blueTeam)){
+                blueFlagLocations.set(0, newFlagLocation);
+            } else {
+                redFlagLocations.set(0, newFlagLocation);
+            }
+        }
 
     }
 
@@ -416,28 +488,6 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        //stop location updates when Activity is no longer active
-        if (mGoogleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }
-    }
-    @Override
-    public void onResume() {
-        super.onResume();
-        // Check to see that the Activity started due to an Android Beam
-        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
-            processIntent(getIntent());
-        }
-        // Play the game normally if possible
-        if (gamePlayingNormally) normalLoop();
-        if (playerTagged){
-
-        }
-    }
-
     private void normalLoop(){
         while (gamePlayingNormally)
             if (playerTagged){
@@ -454,7 +504,8 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
                 holdingFlag = true;
                 alertFlagPickedUp();
             } else if (closeToFlag().equals(getString(R.string.fake_flag)) && !holdingFlag){
-                //send toast alerting player from server
+                //TODO make it a notification?
+                Toast.makeText(this, R.string.msg_fake_flag, Toast.LENGTH_SHORT).show();
             }
             String closeItemId = closeToItem();
             // If player is close to an item and has no item, get it
@@ -465,21 +516,32 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
 
             if (holdingFlag && playerInTeamZone()){
                 player.incrementNumOfCaps();
+                Toast.makeText(this, R.string.msg_point_friendly, Toast.LENGTH_SHORT).show();
                 //TODO keep track of score and start round again
+                //TODO update server that player scored
                 // Both teams should have to be in their respawn areas.
                 restartRound();
             }
             updateFromServer();
-            //TODO check server to see if the gameplay is paused
-
+            //TODO check server to see if the gameplay is paused/reset
+        if (playerTagged) taggedLoop();
     }
 
     private void taggedLoop(){
+        ConstraintLayout taggedLayout = findViewById(R.id.tagged_layout);
+        taggedLayout.setVisibility(View.VISIBLE);
+        //TODO set any buttons floating to GONE
+        initCountdownValues();
         while (playerTagged){
-            if (true){
-
+            if (!playerInRespawnArea()){
+                stopCountDownTimer();
+            } else if (timerStatus == TimerStatus.STOPPED){
+                startCountDownTimer();
             }
         }
+        //break out of the loop, hide the tagged layout again
+        taggedLayout.setVisibility(View.GONE);
+
     }
 
     private void updateFromServer(){
@@ -598,10 +660,14 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     // Check if the player is in their own respawn area.
-    private boolean playerInRespawnArea(LatLngBounds respawnArea){
+    private boolean playerInRespawnArea(){
         if(playerLocation != null){
             LatLng playerLatLng = extractLatLngFromLocation(playerLocation);
-            return respawnArea.contains(playerLatLng);
+            if (playerTeam.equals(Team.blueTeam)){
+                return respawnZoneBlue.contains(playerLatLng);
+            } else {
+                return respawnZoneRed.contains(playerLatLng);
+            }
         } else {
             return false;
         }
@@ -612,9 +678,9 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng playerLatLng = extractLatLngFromLocation(playerLocation);
             // Blue team = team 1
             if (playerTeam.equals(Team.blueTeam)){
-                return zoneTeam1.contains(playerLatLng);
+                return zoneBlue.contains(playerLatLng);
             } else {
-                return zoneTeam2.contains(playerLatLng);
+                return zoneRed.contains(playerLatLng);
             }
         } else {
             return false;
@@ -727,11 +793,11 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-        respawnZoneTeam1 = new LatLngBounds(new LatLng(x1, y1), new LatLng(x2, y2));
-        zoneTeam1 = new LatLngBounds(new LatLng(x1, y1), new LatLng(x3, y2));
+        respawnZoneBlue = new LatLngBounds(new LatLng(x1, y1), new LatLng(x2, y2));
+        zoneBlue = new LatLngBounds(new LatLng(x1, y1), new LatLng(x3, y2));
         neutralZone = new LatLngBounds(new LatLng(x3, y1), new LatLng(x4, y2));
-        zoneTeam2 = new LatLngBounds(new LatLng(x4, y1), new LatLng(x5, y2));
-        respawnZoneTeam2 = new LatLngBounds(new LatLng(x5, y1), new LatLng(x6, y2));
+        zoneRed = new LatLngBounds(new LatLng(x4, y1), new LatLng(x5, y2));
+        respawnZoneRed = new LatLngBounds(new LatLng(x5, y1), new LatLng(x6, y2));
 
     }
 
@@ -739,18 +805,18 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     //Adds zones to the map and displays them. Called only when loading map for first time in the activity
     private void addZones(){
         // Check that the zones have been calculated, if not then stop
-        if (respawnZoneTeam1 == null || zoneTeam1 == null
-                || neutralZone == null || zoneTeam2 == null || respawnZoneTeam2 == null
+        if (respawnZoneBlue == null || zoneBlue == null
+                || neutralZone == null || zoneRed == null || respawnZoneRed == null
                 ) return;
         // Remove anything that might have been on the map before
         mMap.clear();
-        Polygon rectRespawnTeam1 = mMap.addPolygon(calculateRectangle(respawnZoneTeam1));
+        Polygon rectRespawnTeam1 = mMap.addPolygon(calculateRectangle(respawnZoneBlue));
         rectRespawnTeam1.setTag(getString(R.string.respawn_1));
         rectRespawnTeam1.setZIndex(1);
         rectRespawnTeam1.setFillColor(0x7F2196F3);
         rectRespawnTeam1.setStrokeWidth(0);
 
-        Polygon rectTeam1 = mMap.addPolygon(calculateRectangle(zoneTeam1));
+        Polygon rectTeam1 = mMap.addPolygon(calculateRectangle(zoneBlue));
         rectTeam1.setTag(getString(R.string.zone_1));
         rectTeam1.setFillColor(0x7F1565C0);
         rectTeam1.setStrokeWidth(0);
@@ -760,12 +826,12 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         rectNeutral.setFillColor(0x7F9E9E9E);
         rectNeutral.setStrokeWidth(0);
 
-        Polygon rectTeam2 = mMap.addPolygon(calculateRectangle(zoneTeam2));
+        Polygon rectTeam2 = mMap.addPolygon(calculateRectangle(zoneRed));
         rectTeam2.setTag(getString(R.string.zone_2));
         rectTeam2.setFillColor(0x7FC62828);
         rectTeam2.setStrokeWidth(0);
 
-        Polygon rectRespawnTeam2 = mMap.addPolygon(calculateRectangle(respawnZoneTeam2));
+        Polygon rectRespawnTeam2 = mMap.addPolygon(calculateRectangle(respawnZoneRed));
         rectRespawnTeam2.setTag(getString(R.string.respawn_2));
         rectRespawnTeam2.setZIndex(1);
         rectRespawnTeam2.setFillColor(0x7FF44336);
@@ -789,10 +855,23 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
                      new LatLng(x2, y1));
     }
 
+    private void addItems(){
+        for (Item item : items){
+            LatLng itemPosition = item.getPosition();
+            String itemClass = item.getItemClass();
+            if (itemClass.equals(getString(R.string.common))){
+                mMap.addMarker(new MarkerOptions().position(itemPosition).icon(ic_common_item));
+            } else {
+                mMap.addMarker(new MarkerOptions().position(itemPosition).icon(ic_rare_item));
+            }
+        }
+    }
+
 
     private void refreshMap(){
         mMap.clear();
         addZones();
+        addItems();
         if (flagVisible) showFlagOnMap();
     }
 
@@ -802,11 +881,11 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             // True flag is at index 0.
             // TODO use ArrayList for flagVisible - could hide dummy flags. Temp solution = send Toast
             for(LatLng flagLocation : redFlagLocations){
-                mMap.addMarker(new MarkerOptions().position(flagLocation));
+                mMap.addMarker(new MarkerOptions().position(flagLocation).icon(ic_red_flag));
             }
         } else {
             for(LatLng flagLocation : blueFlagLocations){
-                mMap.addMarker(new MarkerOptions().position(flagLocation));
+                mMap.addMarker(new MarkerOptions().position(flagLocation).icon(ic_blue_flag));
             }
         }
         flagVisible = true;
@@ -879,6 +958,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         for (int i = 0; i < items.size(); i++){
             if (items.get(i).getId().equals(itemId)){
                 items.remove(i);
+                //TODO update server
                 break;
             }
         }
