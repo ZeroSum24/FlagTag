@@ -1,6 +1,9 @@
 package hangryhippos.cappturetheflag;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.Intent;
 import android.location.Location;
@@ -37,10 +40,16 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.nio.charset.Charset;
 import java.util.Timer;
+
+import hangryhippos.cappturetheflag.database.obj.Player;
+import hangryhippos.cappturetheflag.database.obj.Team;
 
 public class PlayActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -84,6 +93,8 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private ProgressBar countdownProgress;
     // Length of time (in milliseconds that players have to wait to get released
     private int waitingTime = 20000;
+    //Number of times location can be updated and not trigger a dialog if it's out of bounds
+    private int outOfBoundsGrace = 50;
     private CountDownTimer countDownTimer;
     private enum TimerStatus {
         STARTED,
@@ -91,12 +102,25 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     }
     private TimerStatus timerStatus = TimerStatus.STOPPED;
 
+    // True if enemy flag has been revealed; false otherwise
+    private boolean flagRevealed;
+
+    private Player player;
+    private Team playerTeam;
+
+
+
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
+
+        initialisePlayer();
+
+
 
         //Initialises Difficulty and Points Systems
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
@@ -124,6 +148,22 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
+
+    private void initialisePlayer(){
+        Bundle bundle = getIntent().getExtras();
+        String deviceID = bundle.getString(getString(R.string.device_id));
+        String playerName = bundle.getString(getString(R.string.display_name));
+        String jsonTeam = bundle.getString(getString(R.string.team));
+        Gson gson = new Gson();
+        Type type = new TypeToken<Team>(){}.getType();
+        playerTeam = gson.fromJson(jsonTeam, type);
+
+        //TODO position is null to start with - fair enough?
+        player = new Player(deviceID, playerName, playerTeam, false, 0, 0,
+                0, getString(R.string.empty), null);
+    }
+
+
     /**
      * Method updates the activity when the map is ready by placing all of the word markers on the
      * map. The method also updates various User Interface elements of the map
@@ -271,6 +311,9 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onLocationChanged(Location current) {
+        //update location of player
+        //TODO update server of new location
+        playerLocation = current;
 
         Log.d("New Location", "Lat: " + current.getLatitude() + "Lng : " + current.getLongitude());
         Location target = new Location("target");
@@ -283,6 +326,12 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             } else if (timerStatus == TimerStatus.STOPPED){
                 startCountDownTimer();
             }
+        }
+        //If player is out of bounds, allow them to go out a bit (may be a mistake)
+        if (playerOutOfBounds()){
+            if (outOfBoundsGrace > 0) outOfBoundsGrace--;
+            // has gone far/repeatedly out of bounds - send dialog warning.
+            else sendOutOfBoundsDialog();
         }
 
     }
@@ -337,6 +386,17 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
             processIntent(getIntent());
         }
+    }
+
+    private void normalLoop(){
+        while (true)
+            if (playerTagged){
+                setContentView(R.layout.countdown_layout);
+                initCountdownValues();
+                //NB not starting timer yet(should be triggered after next location update
+                // - will only get tagged far away from respawn zone (so would take time to reach)
+                break;
+            }
     }
 
     private void refresh(){
@@ -471,6 +531,44 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             return false;
         }
+    }
+
+    // Check if the player has gone out of bounds.
+    private boolean playerOutOfBounds(){
+        if (playerLocation != null){
+            LatLng playerLatLng = extractLatLngFromLocation(playerLocation);
+            return EDINBURGH_MEADOWS.contains(playerLatLng);
+        } else {
+            return false;
+        }
+    }
+
+
+    private void sendOutOfBoundsDialog(){
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        adb.setTitle(R.string.out_of_bounds);
+        adb.setMessage(R.string.msg_out_of_bounds);
+        adb.setPositiveButton(R.string.return_back, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+        adb.setNegativeButton(R.string.quit, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //Quit, return to home screen
+                Intent homeIntent = new Intent(getApplicationContext(), HomeActivity.class);
+                startActivity(homeIntent);
+            }
+        });
+
+        AlertDialog ad = adb.create();
+        ad.setCancelable(false);
+        ad.setCanceledOnTouchOutside(false);
+        ad.show();
+        // Reset the amount the player can be out of bounds.
+        outOfBoundsGrace = 50;
     }
 
     // Initialise variables before counting down

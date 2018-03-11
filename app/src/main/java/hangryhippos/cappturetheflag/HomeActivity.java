@@ -112,6 +112,12 @@ public class HomeActivity extends AppCompatActivity
         switch (v.getId()) {
             case R.id.btn_play:
                 Intent playIntent = new Intent(this, PlayActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString(getString(R.string.device_id), Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID));
+                bundle.putString(getString(R.string.display_name), getDisplayName());
+                //TODO check for game. If no game, create one. If existing game, join.
+                //TODO assign player to a team.
+                playIntent.putExtras(bundle);
                 startActivity(playIntent);
                 break;
             case R.id.btn_help:
@@ -316,6 +322,11 @@ public class HomeActivity extends AppCompatActivity
     private boolean checkDisplayName() {
         SharedPreferences settings = this.getSharedPreferences(APP_NAME, Context.MODE_PRIVATE);
         return settings.getString(DISPLAY_NAME_KEY, null) != null;
+    }
+
+    private String getDisplayName(){
+        SharedPreferences settings = this.getSharedPreferences(APP_NAME, Context.MODE_PRIVATE);
+        return settings.getString(DISPLAY_NAME_KEY, "Player");
     }
 
     private void saveDisplayName(String name) {
