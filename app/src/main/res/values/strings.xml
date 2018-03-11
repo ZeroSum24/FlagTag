@@ -37,6 +37,8 @@
     <string name="return_back">Return</string>
     <string name="quit">Quit</string>
 
+    <string name="format_score">Score: %1$s</string>
+
     <!-- Data to pass from home to play -->
     <string name="device_id">DeviceID</string>
     <string name="display_name">Name</string>
@@ -51,6 +53,10 @@
     <string name="signin_other_error">There was an issue with sign in. Please try again later.</string>
 
 
+    <string name="real_flag">Real Flag</string>
+    <string name="fake_flag">Fake Flag</string>
+    <string name="no_flag">No Flag</string>
+    <string name="flag_close">Flag Close</string>
 
     <string name="location_error">Location Error</string>
     <string name="msg_location_rationale">Access to your location is required for the basic gameplay -

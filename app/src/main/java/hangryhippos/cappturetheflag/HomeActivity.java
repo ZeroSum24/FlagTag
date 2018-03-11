@@ -25,8 +25,10 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
 import com.google.example.games.basegameutils.BaseGameUtils;
+import com.google.gson.Gson;
 
 import hangryhippos.cappturetheflag.database.GameCreatorConnection;
+import hangryhippos.cappturetheflag.database.obj.Team;
 
 public class HomeActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
@@ -116,7 +118,12 @@ public class HomeActivity extends AppCompatActivity
                 bundle.putString(getString(R.string.device_id), Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID));
                 bundle.putString(getString(R.string.display_name), getDisplayName());
                 //TODO check for game. If no game, create one. If existing game, join.
-                //TODO assign player to a team.
+                //TODO assign player to a team (set to blue right now).
+
+                Gson gson = new Gson();
+                String jsonTeam = gson.toJson(Team.blueTeam);
+                bundle.putString(getString(R.string.team), jsonTeam);
+
                 playIntent.putExtras(bundle);
                 startActivity(playIntent);
                 break;

@@ -29,31 +29,72 @@
     <include layout="@layout/content_play" />
     <include layout="@layout/settings_buttons"/>
 
-    <ImageView
-        android:id="@+id/Team2Score"
-        android:layout_width="167dp"
-        android:layout_height="62dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="20dp"
-        android:src="@drawable/res_buttons_rect_stroke"
-        app:layout_constraintBottom_toTopOf="@+id/Team1Score"
+    <RelativeLayout
+        android:id="@+id/relativeTeam2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/relativeTeam1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" >
+        <ImageView
+            android:id="@+id/Team2Score"
+            android:layout_width="167dp"
+            android:layout_height="62dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="20dp"
+            android:src="@drawable/res_buttons_rect_stroke_red" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/Team2Score"
+            android:layout_alignRight="@+id/Team2Score"
+            android:layout_alignTop="@+id/Team2Score"
+            android:layout_alignBottom="@+id/Team2Score"
+            android:layout_margin="1dp"
+            android:gravity="center"
+            android:text="@string/format_score"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"/>
+    </RelativeLayout>
 
-    <ImageView
-        android:id="@+id/Team1Score"
-        android:layout_width="167dp"
-        android:layout_height="62dp"
-        android:layout_marginBottom="20dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:src="@drawable/res_buttons_rect_stroke"
+    <RelativeLayout
+        android:id="@+id/relativeTeam1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" >
+        <ImageView
+            android:id="@+id/Team1Score"
+            android:layout_width="167dp"
+            android:layout_height="62dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/res_buttons_rect_stroke_blue"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/Team1Score"
+            android:layout_alignRight="@+id/Team1Score"
+            android:layout_alignTop="@+id/Team1Score"
+            android:layout_alignBottom="@+id/Team1Score"
+            android:layout_margin="1dp"
+            android:gravity="center"
+            android:text="@string/format_score"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"/>
+
+    </RelativeLayout>
+
+
 
 
 </android.support.constraint.ConstraintLayout>

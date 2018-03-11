@@ -38,16 +38,20 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.google.maps.android.SphericalUtil;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.nio.charset.Charset;
 import java.util.Timer;
 
+import hangryhippos.cappturetheflag.database.obj.Item;
 import hangryhippos.cappturetheflag.database.obj.Player;
 import hangryhippos.cappturetheflag.database.obj.Team;
 
@@ -105,12 +109,37 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     // True if enemy flag has been revealed; false otherwise
     private boolean flagRevealed;
 
+    // True if enemy is shown on map; false otherwise
+    // Separate as there may be time between revealing flag and showing on map
+    // Can avoid replacing the flag on the map repeatedly.
+    private boolean flagVisible;
+
+    // True if player is holding the flag; false otherwise
+    private boolean holdingFlag;
+
+    // True if the game is in progress for a round; false if there is a break e.g. to reset
+    private boolean gamePlayingNormally;
+
     private Player player;
     private Team playerTeam;
 
+    private ArrayList<LatLng> blueFlagLocations;
+    private ArrayList<LatLng> redFlagLocations;
 
+    // Distance user must be from a flag to locate it
+    private static final int FLAG_DISTANCE = 20;
 
+    // Distance user must be from an item/flag to pick it up
+    private static final int PICKUP_DISTANCE = 5;
 
+    private LatLng blueFlagLocation;
+    private LatLng redFlagLocation;
+
+    // all items on the map. Needs to be refreshed
+    private ArrayList<Item> items;
+
+    private int friendlyScore = 0;
+    private int enemyScore = 0;
 
 
     @Override
@@ -119,7 +148,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_play);
 
         initialisePlayer();
-
+        //TODO get flag lat/lngs from server - need to also refresh from server
 
 
         //Initialises Difficulty and Points Systems
@@ -315,6 +344,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         //TODO update server of new location
         playerLocation = current;
 
+
         Log.d("New Location", "Lat: " + current.getLatitude() + "Lng : " + current.getLongitude());
         Location target = new Location("target");
 
@@ -386,10 +416,13 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
             processIntent(getIntent());
         }
+        // Play the game normally if possible
+        if (gamePlayingNormally) normalLoop();
+        if (playerTagged)
     }
 
     private void normalLoop(){
-        while (true)
+        while (gamePlayingNormally)
             if (playerTagged){
                 setContentView(R.layout.countdown_layout);
                 initCountdownValues();
@@ -397,27 +430,53 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
                 // - will only get tagged far away from respawn zone (so would take time to reach)
                 break;
             }
+            if (flagRevealed && !flagVisible){
+                showFlagOnMap();
+            } else if (!flagRevealed && flagVisible){
+                hideFlagOnMap();
+            }
+            //TODO only checks if close - no time limit to wait atm
+            if (closeToFlag().equals(getString(R.string.real_flag)) && !holdingFlag){
+                flagRevealed = true;
+                holdingFlag = true;
+                alertFlagPickedUp();
+            } else if (closeToFlag().equals(getString(R.string.fake_flag)) && !holdingFlag){
+                //send toast alerting player from server
+            }
+            String closeItemId = closeToItem();
+            // If player is close to an item and has no item, get it
+            if (!closeItemId.equals("") && player.getItem().equals(getString(R.string.empty))){
+                pickUpItem(closeItemId);
+                removeItemFromMap();
+            }
+
+            if (holdingFlag && playerInTeamZone()){
+                player.incrementNumOfCaps();
+                //TODO keep track of score and start round again
+                // Both teams should have to be in their respawn areas.
+                restartRound();
+            }
+            updateFromServer();
+            //TODO check server to see if the gameplay is paused
+
     }
 
-    private void refresh(){
-        // TODO
-        // send location to database
-        // if the player has been tagged, they must head back to respawn (can't see anything else)
-        //  - if the player needed to respawn and has entered the area, check that they are still there
-        //  - if they need to respawn and have moved away from the respawn, add time to the respawning and warn the player
-        //  - if they need to respawn but haven't entered the respawn area, keep disabled, but add no time penalty
-        //
-        // if player was not tagged then continue with the rest of the logic here:
-        // check if enemy flag revealed/hidden (store location on player's phone but keep secret)
-        // show enemy flag if revealed
-        // check if you're close to the flag
-        // reveal flag if the player is nearby
-        // if the flag was already revealed, and the player has waited 5 seconds nearby, collect the flag
-        // if the flag has been collected by either team, notify all users of the player(s) with the flag and where they are
-        // check if you're close to an item
-        // if you are, pick it up (and remove the item from the map)
-        //
-        // add logic for items as well? Leave for now
+    private void taggedLoop(){
+        while (playerTagged){
+            if 
+        }
+    }
+
+    private void updateFromServer(){
+
+    }
+
+    private void restartRound(){
+
+    }
+
+    private void alertFlagPickedUp(){
+
     }
 
     void processIntent(Intent intent) {
@@ -533,6 +592,20 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    private boolean playerInTeamZone(){
+        if (playerLocation != null){
+            LatLng playerLatLng = extractLatLngFromLocation(playerLocation);
+            // Blue team = team 1
+            if (playerTeam.equals(Team.blueTeam)){
+                return zoneTeam1.contains(playerLatLng);
+            } else {
+                return zoneTeam2.contains(playerLatLng);
+            }
+        } else {
+            return false;
+        }
+    }
+
     // Check if the player has gone out of bounds.
     private boolean playerOutOfBounds(){
         if (playerLocation != null){
@@ -542,7 +615,6 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             return false;
         }
     }
-
 
     private void sendOutOfBoundsDialog(){
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
@@ -703,6 +775,108 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
                      new LatLng(x2, y1));
     }
 
+    private void clearMap(){
+        mMap.clear();
+        flagVisible = false;
 
+    }
+
+    private void refreshMap(){
+        mMap.clear();
+        addZones();
+        if (flagVisible) showFlagOnMap();
+    }
+
+    private void showFlagOnMap(){
+        if (playerTeam.equals(Team.blueTeam)){
+            // Shows all flags (there may be more than one due to dummy flags)
+            // True flag is at index 0.
+            // TODO use ArrayList for flagVisible - could hide dummy flags. Temp solution = send Toast
+            for(LatLng flagLocation : redFlagLocations){
+                mMap.addMarker(new MarkerOptions().position(flagLocation));
+            }
+        } else {
+            for(LatLng flagLocation : blueFlagLocations){
+                mMap.addMarker(new MarkerOptions().position(flagLocation));
+            }
+        }
+        flagVisible = true;
+    }
+
+    private void hideFlagOnMap(){
+        flagVisible = false;
+        refreshMap();
+    }
+
+    // Returns if the person is next to a) no flag, b) a fake flag, c) the real flag
+    private String closeToFlag(){
+        if (playerLocation != null){
+            LatLng playerLatLng = extractLatLngFromLocation(playerLocation);
+            // Blue team = team 1
+            if (playerTeam.equals(Team.blueTeam)){
+                for(int i = 0; i < redFlagLocations.size(); i++){
+                    double distance = SphericalUtil.computeDistanceBetween(redFlagLocations.get(i), playerLatLng);
+                    if (distance < PICKUP_DISTANCE){
+                        // Close to the real flag
+                        if (i == 0) return getString(R.string.real_flag);
+                        // Close to a flag that is fake
+                        else return getString(R.string.fake_flag);
+                    }
+                    if (distance < FLAG_DISTANCE){
+                        // Notify user that a flag is nearby
+                        return getString(R.string.flag_close);
+                    }
+                }
+                // finished loop, found no nearby flags - return no flag
+                return getString(R.string.no_flag);
+
+            } else {//player is on red team
+                for(int i = 0; i < blueFlagLocations.size(); i++){
+                    double distance = SphericalUtil.computeDistanceBetween(blueFlagLocations.get(i), playerLatLng);
+                    if (distance < PICKUP_DISTANCE){
+                        // Close to the real flag
+                        if (i == 0) return getString(R.string.real_flag);
+                            // Close to a flag that is fake
+                        else return getString(R.string.fake_flag);
+                    }
+                    if (distance < FLAG_DISTANCE){
+                        return getString(R.string.flag_close);
+                    }
+                }
+                return getString(R.string.no_flag);
+            }
+        } else {
+            return getString(R.string.no_flag);
+        }
+    }
+
+    // Returns the itemId of any item that is near enough to pick up
+    private String closeToItem(){
+        if (playerLocation != null){
+            LatLng playerLatLng = extractLatLngFromLocation(playerLocation);
+            for (int i = 0; i < items.size(); i++){
+                double distance = SphericalUtil.computeDistanceBetween(items.get(i).getPosition(), playerLatLng);
+                if (distance < PICKUP_DISTANCE){
+                    return items.get(i).getId();
+                }
+            }
+            return "";
+        } else {
+            return "";
+        }
+    }
+
+    private void pickUpItem(String itemId){
+        for (int i = 0; i < items.size(); i++){
+            if (items.get(i).getId().equals(itemId)){
+                items.remove(i);
+                break;
+            }
+        }
+    }
+
+    private void removeItemFromMap(){
+        //refresh map to remove items out of list
+    }
 
 }
