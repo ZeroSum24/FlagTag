@@ -82,8 +82,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean mLocationPermissionGranted = false;
     private Location mLastLocation;
     private static final String TAG = "MapsActivity";
-    private TextView textView;
-    private List<Marker> markerList;
+    private AlertDialogManager alertManager = new AlertDialogManager();
 
     // Bounds for area intially
     private static final LatLngBounds EDINBURGH_MEADOWS =
@@ -599,33 +598,37 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private void checkLocationConnection(final Bundle connectionHint) {
         /* Checks Map network connections -- they do not process until both location connections has
         been completed */
-//
-//        if (!isLocationEnabled()) {
-//            //Check if Location present, if not:
-//            alertManager.showAlertDialog(MapsActivity.this, getString(R.string.mLocationHeader),
-//                    getString(R.string.mLocationMessage), getString(R.string.retry),
-//                    false, new View.OnClickListener() {
-//                        @Override
-//                        public void onClick(View v) {
-//                            if (isLocationEnabled()) {
-//                                alertManager.dismissAlertDialog();
-//                                onConnected(connectionHint);
-//                            }
-//                        }
-//                    });
-//        } else if (!isLocationModeHighPriority()) {
-//            //Check if Location is in High Priority Mode, if not:
-//            alertManager.showAlertDialog(MapsActivity.this, getString(R.string.mLocationHPErrorHeader),
-//                    getString(R.string.mLocationHPErrorMessage), getString(R.string.retry),
-//                    false, new View.OnClickListener() {
-//                        @Override
-//                        public void onClick(View v) {
-//                            if (isLocationModeHighPriority()) {
-//                                alertManager.dismissAlertDialog();
-//                            }
-//                        }
-//                    });
-//        }
+
+
+        if (!isLocationEnabled()) {
+            //Check if Location present, if not:
+            alertManager.showAlertDialog(PlayActivity.this, getString(R.string.mLocationHeader),
+                    getString(R.string.mLocationMessage), getString(R.string.retry),
+                    false, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (isLocationEnabled()) {
+                                alertManager.dismissAlertDialog();
+                                onConnected(connectionHint);
+                            } else {
+                                alertManager.dismissAlertDialog();
+                                startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                            }
+                        }
+                    });
+        } else if (!isLocationModeHighPriority()) {
+            //Check if Location is in High Priority Mode, if not:
+            alertManager.showAlertDialog(PlayActivity.this, getString(R.string.mLocationHPErrorHeader),
+                    getString(R.string.mLocationHPErrorMessage), getString(R.string.retry),
+                    false, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (isLocationModeHighPriority()) {
+                                alertManager.dismissAlertDialog();
+                            }
+                        }
+                    });
+        }
     }
     /**
      * Creates a custom MIME type encapsulated in an NDEF record

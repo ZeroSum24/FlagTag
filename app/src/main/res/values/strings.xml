@@ -75,4 +75,33 @@
     <string name="common">Common</string>
     <string name="rare">Rare</string>
 
+    <!--Strings for Location checking-->
+    <string name="mIntAndLocHeader">Internet and Location Errors</string>
+    <string name="mIntAndLocMessage">Please connect both Internet and Location connections</string>
+    <string name="mInternetHeader">Internet Connection Error</string>
+    <string name="mInternetMessage">Please connect to a working Internet connection</string>
+    <string name="mLocationHeader">Location Settings Error</string>
+    <string name="mLocationMessage">Please connect your Location connection</string>
+    <string name="mLocationHPErrorHeader">Adjust Location Mode</string>
+    <string name="mLocationHPErrorMessage">Songle heavily relies on location accuracy.\n\nPlease ensure the Location Mode in  Settings is set to High Accuracy.</string>
+    <string name="retry">RETRY</string>
+    <string name="cQuitAlertMMHeader">Do you wish to quit the game?</string>
+    <string name="cQuitAlertHeader">Do you wish to quit the session?</string>
+    <string name="cQuitAlertButton">Quit</string>
+    <string name="cQuitCancelButton">Cancel</string>
+
+
+    <!-- Strings for explanation 'menu' -->
+    <string name="hint_intro_title">Welcome to FlagTag!</string>
+    <string name="hint_intro_msg">FlagTag is a Capture the Flag based game.
+        Bring your favourite games to outdoor environments with power-ups, leader-boards and bantz.</string>
+    <string name="hint_get_started_title">Get Started</string>
+    <string name="hint_get_started_msg">To get started, just press the big yellow play icon on the main screen.
+        You\'ll automatically join a game if there\'s one going on, but if no one else is playing, then grab your friends and get them to join the fun too!
+        If you really want to read the boring rules (rather than figure it out as you go along) then press onward</string>
+    <string name="hint_rules_title">How To Play</string>
+    <string name="hint_rules_msg">The rules are simple. There are three main zones - one belongs to your team, one belongs to the other team, and one zone is neutral.
+    Within your own zone there is a subzone (but more on that later). To win, you need to find your flag, which has been hidden somewhere in the other team's area.
+    You can run over there to get it - but watch out! </string>
+
 </resources>

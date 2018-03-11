@@ -3,7 +3,6 @@ package hangryhippos.cappturetheflag;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -28,8 +27,8 @@ public class HelpActivity extends AppCompatActivity implements
         LeftButton = findViewById(R.id.LeftButton);
         RightButton = findViewById(R.id.RightButton);
 
-        hintTitleTV = (TextView)findViewById(R.id.TitleText);
-        hintTV = (TextView)findViewById(R.id.HintText);
+        hintTitleTV = (TextView)findViewById(R.id.HintText);
+        hintTV = (TextView)findViewById(R.id.TitleText);
 
         updateTextView(0);
     }
