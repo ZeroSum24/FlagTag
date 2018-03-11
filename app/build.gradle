@@ -28,6 +28,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     // compile 'org.mongodb:mongodb-driver:3.6.3'
     compile project(path: ':BaseGameUtils')
+    compile 'com.github.lzyzsd:circleprogress:1.1.0@aar'
     implementation 'com.google.android.gms:play-services-maps:11.8.0'
     implementation 'com.google.android.gms:play-services-location:11.8.0'
     implementation 'com.google.android.gms:play-services-games:11.8.0'
