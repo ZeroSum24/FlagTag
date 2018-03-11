@@ -26,9 +26,10 @@ public class GoogleApiHandler implements GoogleApiClient.ConnectionCallbacks,
             mGoogleApiClient = new GoogleApiClient.Builder(context)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                    .addApi(LocationServices.API).addApi(Games.API)
+                    .addScope(Games.SCOPE_GAMES)
                     .build();
+
         }
         callbacks = new ArrayList<>();
         failedList = new ArrayList<>();

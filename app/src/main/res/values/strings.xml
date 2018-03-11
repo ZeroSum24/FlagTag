@@ -19,7 +19,28 @@
     <string name="format_name">Name: %1$s</string>
     <string name="connection_type">Connection Type</string>
     <string name="change">Change</string>
+<<<<<<< HEAD
     <string name="textview">TextView</string>
     <string name="logo">Logo</string>
     <string name="hello">Hello</string>
+=======
+
+
+    <!-- Strings for Google Play Sign in - Main Menu -->
+    <string name="sign_in_explanation">Sign In with Google to access bonus features.</string>
+    <string name="you_are_signed_in">You are signed in with Google.</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="click_me">Click me!</string>
+    <string name="you_won">OK! You won!</string>
+    <string name="signin_other_error">There was an issue with sign in. Please try again later.</string>
+
+
+    <string name="location_error">Location Error</string>
+    <string name="msg_location_rationale">Access to your location is required for the basic gameplay -
+        allowing you to see your teammates, where the flag is and special item boxes.</string>
+    <string name="msg_location_permission_denied">The game cannot be played without access to your location.</string>
+
+
+
+>>>>>>> 157cfc8f543c1e588ab82739d0c626688db9f33a
 </resources>
