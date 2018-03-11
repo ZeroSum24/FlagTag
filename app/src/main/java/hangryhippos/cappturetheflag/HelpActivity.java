@@ -4,6 +4,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 public class HelpActivity extends AppCompatActivity implements
@@ -13,10 +14,9 @@ public class HelpActivity extends AppCompatActivity implements
     private String[] hints={"Hint1","Hint2"};
     private String hintTitleCurrant=hintTitles[pointer];
     private String hintCurrant=hints[pointer];
-    private Button LeftButton;
-    private Button RightButton;
-    LeftButton.setOnClickListener(this);
-    RightButton.setOnClickListener(this);
+    private ImageButton LeftButton;
+    private ImageButton RightButton;
+
     TextView hintTitleTV = (TextView)findViewById(R.id.TitleText);
     TextView hintTV = (TextView)findViewById(R.id.HintText);
 
@@ -24,6 +24,12 @@ public class HelpActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_help);
+
+        LeftButton = findViewById(R.id.LeftButton);
+        RightButton = findViewById(R.id.RightButton);
+
+        LeftButton.setOnClickListener(this);
+        RightButton.setOnClickListener(this);
         //updateTextView(0);
     }
     private void updateTextView(int i) {
