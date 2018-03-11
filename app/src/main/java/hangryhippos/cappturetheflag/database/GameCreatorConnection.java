@@ -53,7 +53,6 @@ public class GameCreatorConnection {
         document.put("host", deviceID);
         document.put("blueTeam", buildTeamDoc(true));
         document.put("redTeam", buildTeamDoc(false));
-        System.out.println(document.toJson());
 
         collection.replaceOne(eq("_id", 0), document, new UpdateOptions().upsert(true));
 
