@@ -50,7 +50,7 @@ public class LiveGameConnection {
         memberDoc.put("numOfJails", 0);
         Document location = (Document) Utils.buildLocationDoc(this.location.latitude, this.location.longitude).get("location");
         memberDoc.put("location", location);
-        memberDoc.put("items", new ArrayList<>());
+        memberDoc.put("item", null);
 
         collection.findOneAndUpdate(eq("_id", 0), addToSet(team.name() + ".members", memberDoc));
     }
@@ -117,31 +117,18 @@ public class LiveGameConnection {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), inc("blueTeam.members.$.numOfJails", 1));
     }
 
-    public void addItemToPlayer(String name, LatLng itemPos) {
-        ArrayList<Double> coords = new ArrayList<>();
-        coords.add(itemPos.latitude);
-        coords.add(itemPos.longitude);
-        Document item = new Document();
-        Document loc = (Document) Utils.buildLocationDoc(itemPos.latitude, itemPos.longitude).get("location");
-        item.put("name", name);
-        item.put("location", loc);
-
-        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), addToSet("redTeam.members.$.items", item));
-        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), addToSet("blueTeam.members.$.items", item));
+    public void setPlayerItem(String name) {
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.item", name));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.item", name));
     }
 
-    public void removeItemFromPlayer(String name, LatLng itemPos) {
-        ArrayList<Double> coords = new ArrayList<>();
-        coords.add(itemPos.latitude);
-        coords.add(itemPos.longitude);
-        Document item = new Document();
-        Document loc = (Document) Utils.buildLocationDoc(itemPos.latitude, itemPos.longitude).get("location");
-        item.put("name", name);
-        item.put("location", loc);
+    public void removeItemFromPlayer() {
 
-        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), pull("redTeam.members.$.items", item));
-        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), pull("blueTeam.members.$.items", item));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.item", null));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.item", null));
     }
+
+
 
 
 }
