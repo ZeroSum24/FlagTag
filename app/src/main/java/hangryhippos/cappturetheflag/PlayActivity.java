@@ -108,7 +108,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         Log.e("LocationAPICreate", "LocationAPI null: " + (mGoogleApiClient == null));
         Log.e("LocationOnCreate", "Location null: " + (mLastLocation == null));
 
-        initCountdownValues();
+
     }
     /**
      * Method updates the activity when the map is ready by placing all of the word markers on the
@@ -468,6 +468,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     //TODO - need to tell it to start when the player is tagged
+    //TODO - need to call initvalues()
 
     private void startCountDownTimer(){
         timerStatus = TimerStatus.STARTED;
