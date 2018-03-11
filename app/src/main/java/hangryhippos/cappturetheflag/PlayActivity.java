@@ -63,6 +63,7 @@ import java.util.concurrent.TimeoutException;
 
 import hangryhippos.cappturetheflag.database.GameCreatorConnection;
 import hangryhippos.cappturetheflag.database.LiveGameConnection;
+import hangryhippos.cappturetheflag.database.RuleSetConnection;
 import hangryhippos.cappturetheflag.database.obj.Item;
 import hangryhippos.cappturetheflag.database.obj.Player;
 import hangryhippos.cappturetheflag.database.obj.Team;
@@ -82,7 +83,8 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean mLocationPermissionGranted = false;
     private Location mLastLocation;
     private static final String TAG = "MapsActivity";
-    private AlertDialogManager alertManager = new AlertDialogManager();
+    private TextView textView;
+    private List<Marker> markerList;
 
     // Bounds for area intially
     private static final LatLngBounds EDINBURGH_MEADOWS =
@@ -176,8 +178,13 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         //TODO get scores from server
         displayScores();
 
+        blueFlagLocations = new ArrayList<>();
+        redFlagLocations = new ArrayList<>();
+
+        blueFlagLocations.add(new RuleSetConnection().getRuleSet().getBlueFlagLoc());
+        redFlagLocations.add(new RuleSetConnection().getRuleSet().getRedFlagLoc());
+
         initialisePlayer();
-        //TODO get flag lat/lngs from server - need to also refresh from server
 
         ic_red_flag = BitmapDescriptorFactory.fromResource(R.drawable.ic_red_flag);
         ic_blue_flag = BitmapDescriptorFactory.fromResource(R.drawable.ic_blue_flag);
@@ -251,10 +258,10 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         String displayName = "HHHHHHH";
 
         if(!inProgress) {
-            new GameCreatorConnection(extractLatLngFromLocation(playerLocation), uuid, displayName).registerNewGame(blueFlagLocations.get(0), redFlagLocations.get(0));
+            new GameCreatorConnection(new LatLng(0, 0), uuid, displayName).registerNewGame(blueFlagLocations.get(0), redFlagLocations.get(0));
         }
 
-        gameConnection = new LiveGameConnection(extractLatLngFromLocation(playerLocation),UUID.randomUUID().toString(),displayName);
+        gameConnection = new LiveGameConnection(new LatLng(0, 0),UUID.randomUUID().toString(),displayName);
 
         if(inProgress)
             gameConnection.addPlayerToGame(Team.redTeam);
@@ -598,37 +605,33 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private void checkLocationConnection(final Bundle connectionHint) {
         /* Checks Map network connections -- they do not process until both location connections has
         been completed */
-
-
-        if (!isLocationEnabled()) {
-            //Check if Location present, if not:
-            alertManager.showAlertDialog(PlayActivity.this, getString(R.string.mLocationHeader),
-                    getString(R.string.mLocationMessage), getString(R.string.retry),
-                    false, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (isLocationEnabled()) {
-                                alertManager.dismissAlertDialog();
-                                onConnected(connectionHint);
-                            } else {
-                                alertManager.dismissAlertDialog();
-                                startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-                            }
-                        }
-                    });
-        } else if (!isLocationModeHighPriority()) {
-            //Check if Location is in High Priority Mode, if not:
-            alertManager.showAlertDialog(PlayActivity.this, getString(R.string.mLocationHPErrorHeader),
-                    getString(R.string.mLocationHPErrorMessage), getString(R.string.retry),
-                    false, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (isLocationModeHighPriority()) {
-                                alertManager.dismissAlertDialog();
-                            }
-                        }
-                    });
-        }
+//
+//        if (!isLocationEnabled()) {
+//            //Check if Location present, if not:
+//            alertManager.showAlertDialog(MapsActivity.this, getString(R.string.mLocationHeader),
+//                    getString(R.string.mLocationMessage), getString(R.string.retry),
+//                    false, new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//                            if (isLocationEnabled()) {
+//                                alertManager.dismissAlertDialog();
+//                                onConnected(connectionHint);
+//                            }
+//                        }
+//                    });
+//        } else if (!isLocationModeHighPriority()) {
+//            //Check if Location is in High Priority Mode, if not:
+//            alertManager.showAlertDialog(MapsActivity.this, getString(R.string.mLocationHPErrorHeader),
+//                    getString(R.string.mLocationHPErrorMessage), getString(R.string.retry),
+//                    false, new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//                            if (isLocationModeHighPriority()) {
+//                                alertManager.dismissAlertDialog();
+//                            }
+//                        }
+//                    });
+//        }
     }
     /**
      * Creates a custom MIME type encapsulated in an NDEF record
