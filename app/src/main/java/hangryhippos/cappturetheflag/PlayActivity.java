@@ -76,7 +76,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
 
     // Bounds for area intially
     private static final LatLngBounds EDINBURGH_MEADOWS =
-            new LatLngBounds(new LatLng(55.940511, -3.195196), new LatLng(55.942117, -3.186929));
+            new LatLngBounds(new LatLng(55.940671, -3.193070), new LatLng(55.941288, -3.189714));
 
     // area where team 1 respawns
     private LatLngBounds respawnZoneBlue;
