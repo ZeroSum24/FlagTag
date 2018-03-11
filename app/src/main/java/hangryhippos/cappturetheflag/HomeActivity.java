@@ -12,17 +12,13 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -74,6 +70,9 @@ public class HomeActivity extends AppCompatActivity
         ImageView settings = findViewById(R.id.btn_settings);
         settings.setOnClickListener(this);
 
+        ImageView leaderboard = findViewById(R.id.wLeaderboard);
+        leaderboard.setOnClickListener(this);
+
         buildGoogleApiClient();
 
         //Check if the player has a name stored - if not then ask them to enter one
@@ -120,6 +119,7 @@ public class HomeActivity extends AppCompatActivity
                 mGoogleApiClient.connect();
                 break;
             case R.id.wLeaderboard:
+                Log.d(TAG, "Leaderboard button clicked");
                 showLeaderboard();
                 break;
 
@@ -200,6 +200,8 @@ public class HomeActivity extends AppCompatActivity
      * Method builds the Google Api Client for use by in signing in to Google Play Services
      */
     private synchronized void buildGoogleApiClient() {
+        boolean apiIsEmpty = (mGoogleApiClient == null);
+        Log.d(TAG, "Google Api Client is null: " + apiIsEmpty);
 
             if (mGoogleApiClient == null) {
                 mGoogleApiClient = new GoogleApiClient.Builder(this)

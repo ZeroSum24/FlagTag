@@ -50,6 +50,7 @@
             style="@style/SignInOutBarBlurb"
             android:text="@string/sign_in_explanation" />
     </LinearLayout>
+
     <ImageView
         android:id="@+id/ic_flag"
         android:layout_width="61dp"
