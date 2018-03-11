@@ -35,9 +35,11 @@ import com.google.android.gms.games.Game;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -224,12 +226,15 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setMinZoomPreference(16.0f);
 
         // Constrain the camera target to the Adelaide bounds.
-        mMap.setLatLngBoundsForCameraTarget(EDINBURGH_MEADOWS);
+//        mMap.setLatLngBoundsForCameraTarget(EDINBURGH_MEADOWS);
 
-        // Set the camera to the greatest possible zoom level that includes the
-// bounds
-//        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(ADELAIDE, 0));
-
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(EDINBURGH_MEADOWS.getCenter())
+                .zoom(18)
+                .bearing(90)                // Sets the orientation of the camera to east
+                .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
         try {
             // Visualise current position with a small blue circle
