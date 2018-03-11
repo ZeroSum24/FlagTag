@@ -57,6 +57,13 @@
     <string name="fake_flag">Fake Flag</string>
     <string name="no_flag">No Flag</string>
     <string name="flag_close">Flag Close</string>
+    <string name="msg_fake_flag">That flag is fake!</string>
+    <string name="msg_flag_captured_friendly">We\'re capturing the enemy\'s flag!</string>
+    <string name="msg_flag_captured_enemy">They\'re capturing our flag!</string>
+    <string name="msg_point_friendly">We\'ve scored a point!</string>
+    <string name="msg_point_enemy">They\'ve scored a point!</string>
+    <string name="msg_win">We\'ve won!</string>
+    <string name="msg_lose">We\'ve lost!</string>
 
     <string name="location_error">Location Error</string>
     <string name="msg_location_rationale">Access to your location is required for the basic gameplay -

@@ -8,4 +8,6 @@
     tools:context="hangryhippos.cappturetheflag.PlayActivity"
     tools:showIn="@layout/activity_play">
 
+
+
 </android.support.constraint.ConstraintLayout>
