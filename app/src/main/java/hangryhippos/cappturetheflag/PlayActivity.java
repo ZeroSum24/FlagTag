@@ -35,6 +35,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
 
 import java.util.List;
 import java.nio.charset.Charset;
@@ -58,7 +60,19 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView textView;
     private List<Marker> markerList;
 
+    // Bounds for area intially
+    private static final LatLngBounds EDINBURGH_MEADOWS =
+            new LatLngBounds(new LatLng(55.940511, -3.195196), new LatLng(55.942117, -3.186929));
+
+    // area where team 1 respawns
+    private LatLngBounds respawnZoneTeam1;
+    private LatLngBounds respawnZoneTeam2;
+    // team 1's area in general (covers respawn area too to make tagging easier)
+    private LatLngBounds zoneTeam1;
+    private LatLngBounds zoneTeam2;
+    private LatLngBounds neutralZone;
     // Gives the respawn area for the player's team
+    // NB different to the respawn area for two teams as it changes depending on your team
     private LatLngBounds respawnArea;
     // Gives the last location of the player
     private Location playerLocation;
@@ -119,14 +133,10 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        LatLngBounds ADELAIDE = new LatLngBounds(new LatLng(-35.0, 138.58), new LatLng(-34.9, 138.61));
-//        55.941608, -3.192494
-
-//        LatLngBounds Meadows = new LatLngBounds(new LatLng(55.941608, -3.192494), new LatLng(55.940589, -3.190078));
+        mMap.setMinZoomPreference(16.0f);
 
         // Constrain the camera target to the Adelaide bounds.
-        mMap.setLatLngBoundsForCameraTarget(ADELAIDE);
+        mMap.setLatLngBoundsForCameraTarget(EDINBURGH_MEADOWS);
 
         // Set the camera to the greatest possible zoom level that includes the
 // bounds
@@ -146,7 +156,9 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.getUiSettings().setZoomControlsEnabled(false);
 
         repositionMapLocationButton(); //changes the position of map location button is created
-
+        //TODO would be good if creator of game could set bounds themselves.
+        calculateZones(EDINBURGH_MEADOWS);
+        addZones();
     }
 
     /**
@@ -509,6 +521,88 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         TextView msg = findViewById(R.id.txt_view_respawn_error_message);
         title.setVisibility(TextView.VISIBLE);
         msg.setVisibility(TextView.VISIBLE);
+    }
+
+    private void calculateZones(LatLngBounds totalArea){
+        LatLng northeast = totalArea.northeast;
+        LatLng southwest = totalArea.southwest;
+
+        //TODO allow changes in orientation (not simply horizontal as needed here for simple solution)
+        //x1, x6 is the order they'd appear on an axis (similarly for y1, y2)
+        double x1 = southwest.longitude;
+        double x6 = northeast.longitude;
+        double y1 = southwest.latitude;
+        double y2 = northeast.latitude;
+
+        //TODO biased to Edinburgh here (longitude would be negative)
+        double x = x6 - x1;
+        double x2 = x1 + x/8;
+        double x3 = x1 + x*3/8;
+        double x4 = x1 + x*5/8;
+        double x5 = x1 + x*7/8;
+
+
+
+        respawnZoneTeam1 = new LatLngBounds(new LatLng(x1, y1), new LatLng(x2, y2));
+        zoneTeam1 = new LatLngBounds(new LatLng(x1, y1), new LatLng(x3, y2));
+        neutralZone = new LatLngBounds(new LatLng(x3, y1), new LatLng(x4, y2));
+        zoneTeam2 = new LatLngBounds(new LatLng(x4, y1), new LatLng(x5, y2));
+        respawnZoneTeam2 = new LatLngBounds(new LatLng(x5, y1), new LatLng(x6, y2));
+
+    }
+
+    //TODO would be better if didn't show enemy respawn zone (unnecessary)
+    //Adds zones to the map and displays them. Called only when loading map for first time in the activity
+    private void addZones(){
+        // Check that the zones have been calculated, if not then stop
+        if (respawnZoneTeam1 == null || zoneTeam1 == null
+                || neutralZone == null || zoneTeam2 == null || respawnZoneTeam2 == null
+                ) return;
+        // Remove anything that might have been on the map before
+        mMap.clear();
+        Polygon rectRespawnTeam1 = mMap.addPolygon(calculateRectangle(respawnZoneTeam1));
+        rectRespawnTeam1.setTag(getString(R.string.respawn_1));
+        rectRespawnTeam1.setZIndex(1);
+        rectRespawnTeam1.setFillColor(0x7F2196F3);
+        rectRespawnTeam1.setStrokeWidth(0);
+
+        Polygon rectTeam1 = mMap.addPolygon(calculateRectangle(zoneTeam1));
+        rectTeam1.setTag(getString(R.string.zone_1));
+        rectTeam1.setFillColor(0x7F1565C0);
+        rectTeam1.setStrokeWidth(0);
+
+        Polygon rectNeutral = mMap.addPolygon(calculateRectangle(neutralZone));
+        rectNeutral.setTag(getString(R.string.zone_neutral));
+        rectNeutral.setFillColor(0x7F9E9E9E);
+        rectNeutral.setStrokeWidth(0);
+
+        Polygon rectTeam2 = mMap.addPolygon(calculateRectangle(zoneTeam2));
+        rectTeam2.setTag(getString(R.string.zone_2));
+        rectTeam2.setFillColor(0x7FC62828);
+        rectTeam2.setStrokeWidth(0);
+
+        Polygon rectRespawnTeam2 = mMap.addPolygon(calculateRectangle(respawnZoneTeam2));
+        rectRespawnTeam2.setTag(getString(R.string.respawn_2));
+        rectRespawnTeam2.setZIndex(1);
+        rectRespawnTeam2.setFillColor(0x7FF44336);
+        rectRespawnTeam2.setStrokeWidth(0);
+
+    }
+    //TODO assumes rectangle is horizontal
+    private PolygonOptions calculateRectangle(LatLngBounds bounds){
+        LatLng northeast = bounds.northeast;
+        LatLng southwest = bounds.southwest;
+        double x1 = southwest.longitude;
+        double x2 = northeast.longitude;
+        double y1 = southwest.latitude;
+        double y2 = northeast.latitude;
+
+        return new PolygonOptions()
+                .clickable(true)
+                .add(new LatLng(x1, y1),
+                     new LatLng(x1, y2),
+                     new LatLng(x2, y2),
+                     new LatLng(x2, y1));
     }
 
 

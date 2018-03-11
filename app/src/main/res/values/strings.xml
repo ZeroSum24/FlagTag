@@ -26,6 +26,12 @@
     <string name="logo">Logo</string>
     <string name="hello">Hello</string>
 
+    <string name="respawn_1">Respawn zone for team 1</string>
+    <string name="zone_1">Zone for team 1</string>
+    <string name="zone_neutral">Neutral Zone</string>
+    <string name="zone_2">Zone for team 2</string>
+    <string name="respawn_2">Respawn zone for team 2</string>
+
 
     <!-- Strings for Google Play Sign in - Main Menu -->
     <string name="sign_in_explanation">Sign In with Google to access bonus features.</string>
