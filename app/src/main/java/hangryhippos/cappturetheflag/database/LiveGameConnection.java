@@ -16,6 +16,7 @@ import static com.mongodb.client.model.Projections.excludeId;
 import static com.mongodb.client.model.Projections.fields;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Updates.addToSet;
+import static com.mongodb.client.model.Updates.inc;
 import static com.mongodb.client.model.Updates.pull;
 import static com.mongodb.client.model.Updates.set;
 
@@ -84,6 +85,62 @@ public class LiveGameConnection {
     public void setJailStatus(boolean inJail) {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.isJailed", inJail));
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.isJailed", inJail));
+    }
+
+    public void setNumberOfCaptures(int num) {
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.numOfCaps", num));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.numOfCaps", num));
+    }
+
+    public void incrementNumberOfCaptures() {
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), inc("redTeam.members.$.numOfCaps", 1));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), inc("blueTeam.members.$.numOfCaps", 1));
+    }
+
+    public void setNumberOfTags(int num) {
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.numOfTags", num));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.numOfTags", num));
+    }
+
+    public void incrementNumberOfTags() {
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), inc("redTeam.members.$.numOfTags", 1));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), inc("blueTeam.members.$.numOfTags", 1));
+    }
+
+    public void setNumberOfJails(int num) {
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), set("redTeam.members.$.numOfJails", num));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.numOfJails", num));
+    }
+
+    public void incrementNumberOfJails() {
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), inc("redTeam.members.$.numOfJails", 1));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), inc("blueTeam.members.$.numOfJails", 1));
+    }
+
+    public void addItemToPlayer(String name, LatLng itemPos) {
+        ArrayList<Double> coords = new ArrayList<>();
+        coords.add(itemPos.latitude);
+        coords.add(itemPos.longitude);
+        Document item = new Document();
+        Document loc = (Document) Utils.buildLocationDoc(itemPos.latitude, itemPos.longitude).get("location");
+        item.put("name", name);
+        item.put("location", loc);
+
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), addToSet("redTeam.members.$.items", item));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), addToSet("blueTeam.members.$.items", item));
+    }
+
+    public void removeItemFromPlayer(String name, LatLng itemPos) {
+        ArrayList<Double> coords = new ArrayList<>();
+        coords.add(itemPos.latitude);
+        coords.add(itemPos.longitude);
+        Document item = new Document();
+        Document loc = (Document) Utils.buildLocationDoc(itemPos.latitude, itemPos.longitude).get("location");
+        item.put("name", name);
+        item.put("location", loc);
+
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), pull("redTeam.members.$.items", item));
+        collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), pull("blueTeam.members.$.items", item));
     }
 
 
