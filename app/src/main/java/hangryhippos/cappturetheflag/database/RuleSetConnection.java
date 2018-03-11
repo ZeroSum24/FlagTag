@@ -2,6 +2,7 @@ package hangryhippos.cappturetheflag.database;
 
 import android.support.v4.util.Pair;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.mongodb.client.MongoCollection;
 
 import org.bson.Document;
@@ -22,9 +23,9 @@ public class RuleSetConnection
 
     private static final String COLLECTION_NAME_RULES = "game_rules";
 
-    public RuleSetConnection(DatabaseConnection connection)
+    public RuleSetConnection()
     {
-        this.connection = connection;
+        this.connection = new DatabaseConnection();
     }
 
     public RuleSet getRuleSet()
@@ -41,16 +42,25 @@ public class RuleSetConnection
             Zone jailZone = Utils.getZone(d, "jailZone");
             Zone neutralZone = Utils.getZone(d, "neutralZone");
 
+            Document blueFlagDoc = (Document) d.get("blueFlag");
+            ArrayList<Double> blueFlagArray = (ArrayList<Double>) blueFlagDoc.get("coordinates");
+            LatLng blueFlagLoc = new LatLng(blueFlagArray.get(0), blueFlagArray.get(1));
+
+            Document redFlagDoc = (Document) d.get("redFlag");
+            ArrayList<Double> redFlagArray = (ArrayList<Double>) redFlagDoc.get("coordinates");
+            LatLng redFlagLoc = new LatLng(redFlagArray.get(0), redFlagArray.get(1));
+
             if(blueZone == null || redZone == null || jailZone == null || neutralZone == null)
             {
                 return null;
             }
 
-            return new RuleSet(scoreLimit, maxPerTeam, blueZone, redZone, jailZone, neutralZone);
+            return new RuleSet(scoreLimit, maxPerTeam, blueZone, redZone, jailZone, neutralZone, blueFlagLoc, redFlagLoc);
 
         }
         catch(Exception e)
         {
+            System.out.println(e.getMessage());
             // Log.e(TAG, e.getMessage());
         }
 
