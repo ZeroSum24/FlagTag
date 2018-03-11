@@ -89,6 +89,7 @@ public class HomeActivity extends AppCompatActivity
 
         // RUN SHIT ON NEW THREAD
 //        if (GameCreatorConnection.isGameInProgress()) {
+//
 //            Log.d(TAG, "Game in progress");
 //        } else {
 //            Log.d(TAG, "Game not in progress");
@@ -139,7 +140,6 @@ public class HomeActivity extends AppCompatActivity
     public void onConnected(Bundle bundle) {
         Log.d(TAG, "onConnected() called. Sign in successful!");
 
-//        submitScoreToLeaderboard();
         if (findViewById(R.id.sign_in_bar).getVisibility() == View.VISIBLE) {
             hideSignInBar();
         }
