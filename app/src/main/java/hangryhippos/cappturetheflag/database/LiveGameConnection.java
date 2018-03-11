@@ -223,6 +223,55 @@ public class LiveGameConnection {
         collection.findOneAndUpdate(eq("_id", 0), set("in_progress", inProgress));
     }
 
+    /**
+     * Update team's flag pos
+     * @param team Team's flag to update
+     * @param latLng New pos
+     */
+    public void updateFlagPos(Team team, LatLng latLng)
+    {
+
+        ArrayList<Double> coords = new ArrayList<>();
+        coords.add(latLng.latitude);
+        coords.add(latLng.longitude);
+
+        if(team == Team.blueTeam)
+        {
+            collection.findOneAndUpdate(eq("_id", 0), set("blueFlag.location.coordinates", coords));
+        }
+        else
+        {
+            collection.findOneAndUpdate(eq("_id", 0), set("redFlag.location.coordinates", coords));
+        }
+    }
+
+    /**
+     * Get position of a team's flag
+     * @param team Team's flag to get position of
+     * @return LatLng of flag
+     */
+    public LatLng getFlagPos(Team team)
+    {
+        if(team == Team.blueTeam)
+        {
+            Document parent = (Document) collection.find(eq("_id", 0)).first();
+            Document flag = (Document) parent.get("blueFlag");
+            Document loc = (Document) flag.get("location");
+            ArrayList<Double> coords = (ArrayList<Double>) loc.get("coordinates");
+            LatLng pos = new LatLng(coords.get(0), coords.get(1));
+            return pos;
+        }
+        else
+        {
+            Document parent = (Document) collection.find(eq("_id", 0)).first();
+            Document flag = (Document) parent.get("redFlag");
+            Document loc = (Document) flag.get("location");
+            ArrayList<Double> coords = (ArrayList<Double>) loc.get("coordinates");
+            LatLng pos = new LatLng(coords.get(0), coords.get(1));
+            return pos;
+        }
+    }
+
 
 
 }

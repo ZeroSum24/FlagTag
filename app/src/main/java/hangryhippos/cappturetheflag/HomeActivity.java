@@ -120,6 +120,8 @@ public class HomeActivity extends AppCompatActivity
                 //TODO check for game. If no game, create one. If existing game, join.
                 //TODO assign player to a team (set to blue right now).
 
+
+
                 Gson gson = new Gson();
                 String jsonTeam = gson.toJson(Team.blueTeam);
                 bundle.putString(getString(R.string.team), jsonTeam);
