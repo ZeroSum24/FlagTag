@@ -2,7 +2,6 @@ package hangryhippos.cappturetheflag;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.graphics.Rect;
 import android.content.Intent;
 import android.location.Location;
 import android.nfc.NdefMessage;
@@ -11,7 +10,7 @@ import android.nfc.NfcAdapter;
 import android.nfc.NfcAdapter.CreateNdefMessageCallback;
 import android.nfc.NfcEvent;
 import android.os.Bundle;
-import android.os.Debug;
+import android.os.CountDownTimer;
 import android.os.Parcelable;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
@@ -20,25 +19,23 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.nio.charset.Charset;
 
@@ -59,6 +56,20 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private static final String TAG = "MapsActivity";
     private TextView textView;
     private List<Marker> markerList;
+
+    // Gives the respawn area for the player's team
+    private LatLngBounds respawnArea;
+    // Gives the last location of the player
+    private Location playerLocation;
+    // Indicates if the player has been tagged by an enemy
+    private boolean playerTagged;
+    // Indicates if the player is in their respawn area
+    private boolean playerInRespawnArea;
+    // Shows the progress of the countdown
+    private ProgressBar countdownProgress;
+    // Length of time (in milliseconds that players have to wait to get released
+    private int waitingTime = 20000;
+    private CountDownTimer countDownTimer;
 
 
 
@@ -91,7 +102,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         Log.e("LocationAPICreate", "LocationAPI null: " + (mGoogleApiClient == null));
         Log.e("LocationOnCreate", "Location null: " + (mLastLocation == null));
 
-
+        initCountdownValues();
     }
     /**
      * Method updates the activity when the map is ready by placing all of the word markers on the
@@ -152,6 +163,8 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             layoutParams.setMargins(0, 0, 80, 40);
         }
     }
+
+
 
     @Override
     protected void onStart() {
@@ -241,6 +254,16 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         Log.d("New Location", "Lat: " + current.getLatitude() + "Lng : " + current.getLongitude());
         Location target = new Location("target");
 
+        // If the player was tagged, check they are still in the area
+        if (playerTagged){
+            // If they aren't (or are on their way) reset the timer
+            if (!playerInRespawnArea(respawnArea)){
+                stopCountDownTimer();
+            } else {
+                startCountDownTimer();
+            }
+        }
+
     }
 
 
@@ -322,7 +345,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         // only one message sent during the beam
         NdefMessage msg = (NdefMessage) rawMsgs[0];
         Toast.makeText(this, (msg.getRecords()[0].getPayload().toString()), Toast.LENGTH_SHORT).show();
-        if (((msg.getRecords()[0].getPayload())).toString()=="Tag, you're it!"){
+        if (((msg.getRecords()[0].getPayload())).toString().equals("Tag, you're it!")){
             System.out.println("Tagged!");
         }
         // record 0 contains the MIME type, record 1 is the AAR, if present
@@ -414,5 +437,67 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         return (locationMode == Settings.Secure.LOCATION_MODE_HIGH_ACCURACY);
 
     }
+
+    private LatLng extractLatLngFromLocation(Location location){
+        return new LatLng(location.getLatitude(), location.getLongitude());
+    }
+
+    // Check if the player is in their own respawn area.
+    private boolean playerInRespawnArea(LatLngBounds respawnArea){
+        if(playerLocation != null){
+            LatLng playerLatLng = extractLatLngFromLocation(playerLocation);
+            return respawnArea.contains(playerLatLng);
+        } else {
+            return false;
+        }
+    }
+
+    // Initialise variables before counting down
+    private void initCountdownValues(){
+        countdownProgress = (ProgressBar) findViewById(R.id.progress_countdown);
+        countdownProgress.setMax(waitingTime);
+    }
+
+    //TODO - need to tell it to start when the player is tagged
+
+    private void startCountDownTimer(){
+        countdownProgress.setProgress(0);
+        hideRespawnErrorMessage();
+        countDownTimer = new CountDownTimer(waitingTime, 10) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                countdownProgress.setProgress(waitingTime - (int) millisUntilFinished);
+            }
+
+            @Override
+            public void onFinish() {
+                countdownProgress.setProgress(waitingTime);
+                playerTagged = false;
+                //TODO - start normal loop again
+            }
+        }.start();
+        countDownTimer.start();
+    }
+
+    private void stopCountDownTimer(){
+        showRespawnErrorMessage();
+        countDownTimer.cancel();
+    }
+
+    private void hideRespawnErrorMessage(){
+        TextView title = findViewById(R.id.txt_view_respawn_error_title);
+        TextView msg = findViewById(R.id.txt_view_respawn_error_message);
+        title.setVisibility(TextView.INVISIBLE);
+        msg.setVisibility(TextView.INVISIBLE);
+    }
+
+    private void showRespawnErrorMessage(){
+        TextView title = findViewById(R.id.txt_view_respawn_error_title);
+        TextView msg = findViewById(R.id.txt_view_respawn_error_message);
+        title.setVisibility(TextView.VISIBLE);
+        msg.setVisibility(TextView.VISIBLE);
+    }
+
+
 
 }
