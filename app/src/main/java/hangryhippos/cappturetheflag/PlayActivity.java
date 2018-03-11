@@ -464,7 +464,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         String text = ("tag, you're it!");
         NdefMessage msg = new NdefMessage(
                 new NdefRecord[] { createMimeRecord(
-                        "application/com.example.android.beam", text.getBytes())
+                        "application/hangryhippos.cappturetheflag", text.getBytes())
                         /**
                          * The Android Application Record (AAR) is commented out. When a device
                          * receives a push with an AAR in it, the application specified in the AAR
@@ -473,7 +473,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
                          * activity starts when receiving a beamed message. For now, this code
                          * uses the tag dispatch system.
                         */
-                        //,NdefRecord.createApplicationRecord("com.example.android.beam")
+                        ,NdefRecord.createApplicationRecord("hangryhippos.cappturetheflag")
                 });
         return msg;
     }
