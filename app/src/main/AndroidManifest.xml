@@ -47,6 +47,8 @@
         <meta-data android:name="com.google.android.gms.games.APP_ID"
             android:value="@string/google_app_id"/>
 
+        <meta-data android:name="android.nfc.disable_beam_default" android:value="true" />
+
     </application>
 
 </manifest>
