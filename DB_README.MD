@@ -32,7 +32,7 @@ There can only be one game instace globally (for now).
 
 
 
-You should create a `LiveGameConnection` object and keep it alive throughout the user's play session. The host is **automatically added** to the game instance when they create an instance, so no need to do add them.
+You should create a `LiveGameConnection` object and keep it alive throughout the user's play session. The host is **automatically added** to the game instance when they create an instance, so no need to add them.
 
 ```java
 LiveGameConnection playerConnection = new LiveGameConnection(new LatLng(userLat, userLong), deviceID, displayName);
