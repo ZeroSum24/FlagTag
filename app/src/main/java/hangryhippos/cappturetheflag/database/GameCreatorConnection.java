@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import hangryhippos.cappturetheflag.database.obj.Utils;
 
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
 
 /**
  * Used to set initial state of game session in database
@@ -44,7 +45,7 @@ public class GameCreatorConnection {
         return d.getBoolean("in_progress", false);
     }
 
-    public void registerNewGame() {
+    public void registerNewGame(LatLng blueFlag, LatLng redFlag) {
         MongoCollection collection = connection.getMongoDatabase().getCollection(GAME_SESSION_COLLECTION_NAME);
 
         Document document = new Document();
@@ -53,6 +54,19 @@ public class GameCreatorConnection {
         document.put("host", deviceID);
         document.put("blueTeam", buildTeamDoc(true));
         document.put("redTeam", buildTeamDoc(false));
+
+        Document blueLocation = (Document) Utils.buildLocationDoc(blueFlag.latitude, blueFlag.longitude).get("location");
+        Document redLocation = (Document) Utils.buildLocationDoc(redFlag.latitude, blueFlag.longitude).get("location");
+        Document innerBlue = new Document();
+        innerBlue.put("type", "Point");
+        innerBlue.put("location", blueLocation);
+
+        Document innerRed = new Document();
+        innerRed.put("type", "Point");
+        innerRed.put("location", redLocation);
+
+        document.put("blueFlag", innerBlue);
+        document.put("redFlag", innerRed);
 
         collection.replaceOne(eq("_id", 0), document, new UpdateOptions().upsert(true));
 
