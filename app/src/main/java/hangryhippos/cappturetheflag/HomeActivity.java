@@ -24,10 +24,17 @@ import android.widget.ImageView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.example.games.basegameutils.BaseGameUtils;
 import com.google.gson.Gson;
 
+import java.util.Random;
+
 import hangryhippos.cappturetheflag.database.GameCreatorConnection;
+import hangryhippos.cappturetheflag.database.LiveGameConnection;
+import hangryhippos.cappturetheflag.database.RuleSetConnection;
+import hangryhippos.cappturetheflag.database.obj.RuleSet;
 import hangryhippos.cappturetheflag.database.obj.Team;
 
 public class HomeActivity extends AppCompatActivity
@@ -89,13 +96,6 @@ public class HomeActivity extends AppCompatActivity
             sendNetworkErrorDialog();
         }
 
-        // RUN SHIT ON NEW THREAD
-//        if (GameCreatorConnection.isGameInProgress()) {
-//
-//            Log.d(TAG, "Game in progress");
-//        } else {
-//            Log.d(TAG, "Game not in progress");
-//        }
 
     }
 
@@ -120,11 +120,16 @@ public class HomeActivity extends AppCompatActivity
                 //TODO check for game. If no game, create one. If existing game, join.
                 //TODO assign player to a team (set to blue right now).
 
+                if (android.os.Build.VERSION.SDK_INT > 9) {
+                    StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+                    StrictMode.setThreadPolicy(policy);
+                }
 
 
                 Gson gson = new Gson();
                 String jsonTeam = gson.toJson(Team.blueTeam);
                 bundle.putString(getString(R.string.team), jsonTeam);
+                bundle.putBoolean("newGame", GameCreatorConnection.isGameInProgress());
 
                 playIntent.putExtras(bundle);
                 startActivity(playIntent);
