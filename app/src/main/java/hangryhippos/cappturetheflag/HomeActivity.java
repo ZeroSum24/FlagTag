@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -24,6 +25,10 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
 import com.google.example.games.basegameutils.BaseGameUtils;
+import com.google.gson.Gson;
+
+import hangryhippos.cappturetheflag.database.GameCreatorConnection;
+import hangryhippos.cappturetheflag.database.obj.Team;
 
 public class HomeActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
@@ -60,7 +65,6 @@ public class HomeActivity extends AppCompatActivity
         setContentView(R.layout.activity_home);
 
 
-
         ImageView play = findViewById(R.id.btn_play);
         play.setOnClickListener(this);
 
@@ -85,6 +89,14 @@ public class HomeActivity extends AppCompatActivity
             sendNetworkErrorDialog();
         }
 
+        // RUN SHIT ON NEW THREAD
+//        if (GameCreatorConnection.isGameInProgress()) {
+//
+//            Log.d(TAG, "Game in progress");
+//        } else {
+//            Log.d(TAG, "Game not in progress");
+//        }
+
     }
 
     @Override
@@ -102,6 +114,17 @@ public class HomeActivity extends AppCompatActivity
         switch (v.getId()) {
             case R.id.btn_play:
                 Intent playIntent = new Intent(this, PlayActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString(getString(R.string.device_id), Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID));
+                bundle.putString(getString(R.string.display_name), getDisplayName());
+                //TODO check for game. If no game, create one. If existing game, join.
+                //TODO assign player to a team (set to blue right now).
+
+                Gson gson = new Gson();
+                String jsonTeam = gson.toJson(Team.blueTeam);
+                bundle.putString(getString(R.string.team), jsonTeam);
+
+                playIntent.putExtras(bundle);
                 startActivity(playIntent);
                 break;
             case R.id.btn_help:
@@ -130,7 +153,6 @@ public class HomeActivity extends AppCompatActivity
     public void onConnected(Bundle bundle) {
         Log.d(TAG, "onConnected() called. Sign in successful!");
 
-//        submitScoreToLeaderboard();
         if (findViewById(R.id.sign_in_bar).getVisibility() == View.VISIBLE) {
             hideSignInBar();
         }
@@ -203,14 +225,14 @@ public class HomeActivity extends AppCompatActivity
         boolean apiIsEmpty = (mGoogleApiClient == null);
         Log.d(TAG, "Google Api Client is null: " + apiIsEmpty);
 
-            if (mGoogleApiClient == null) {
-                mGoogleApiClient = new GoogleApiClient.Builder(this)
-                        .addConnectionCallbacks(this)
-                        .addOnConnectionFailedListener(this)
-                        .addApi(Games.API).addScope(Games.SCOPE_GAMES)
-                        .build();
-            }
-            mGoogleApiClient.connect();
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                    .build();
+        }
+        mGoogleApiClient.connect();
     }
 
     /**
@@ -307,6 +329,11 @@ public class HomeActivity extends AppCompatActivity
     private boolean checkDisplayName() {
         SharedPreferences settings = this.getSharedPreferences(APP_NAME, Context.MODE_PRIVATE);
         return settings.getString(DISPLAY_NAME_KEY, null) != null;
+    }
+
+    private String getDisplayName(){
+        SharedPreferences settings = this.getSharedPreferences(APP_NAME, Context.MODE_PRIVATE);
+        return settings.getString(DISPLAY_NAME_KEY, "Player");
     }
 
     private void saveDisplayName(String name) {

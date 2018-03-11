@@ -29,7 +29,7 @@ public class Player
         this.item = item;
         this.position = position;
     }
-
+//Don't need setters for ID/name/team as they shouldn't change mid-game
     public String getDeviceID() {
         return deviceID;
     }
@@ -46,23 +46,51 @@ public class Player
         return isJailed;
     }
 
+    public void sendToJail(){
+        isJailed = true;
+    }
+
+    public void freeFromJail(){
+        isJailed = false;
+    }
+
     public int getNumOfCaps() {
         return numOfCaps;
+    }
+
+    public void incrementNumOfCaps(){
+        numOfCaps++;
     }
 
     public int getNumOfTags() {
         return numOfTags;
     }
 
+    public void incrementNumOfTags(){
+        numOfTags++;
+    }
+
     public int getNumOfJails() {
         return numOfJails;
+    }
+
+    public void incrementNumOfJails(){
+        numOfJails++;
     }
 
     public String getItem() {
         return item;
     }
 
+    public void setItem(String itemID){
+        this.item = itemID;
+    }
+
     public LatLng getPosition() {
         return position;
+    }
+
+    public void setPosition(LatLng position){
+        this.position = position;
     }
 }

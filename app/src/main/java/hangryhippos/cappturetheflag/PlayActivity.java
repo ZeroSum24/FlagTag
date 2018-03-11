@@ -1,8 +1,10 @@
 package hangryhippos.cappturetheflag;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.graphics.Rect;
 import android.content.Intent;
 import android.location.Location;
 import android.nfc.NdefMessage;
@@ -11,7 +13,7 @@ import android.nfc.NfcAdapter;
 import android.nfc.NfcAdapter.CreateNdefMessageCallback;
 import android.nfc.NfcEvent;
 import android.os.Bundle;
-import android.os.Debug;
+import android.os.CountDownTimer;
 import android.os.Parcelable;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
@@ -20,16 +22,16 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -37,10 +39,21 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.maps.android.SphericalUtil;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.nio.charset.Charset;
+import java.util.Timer;
+
+import hangryhippos.cappturetheflag.database.obj.Item;
+import hangryhippos.cappturetheflag.database.obj.Player;
+import hangryhippos.cappturetheflag.database.obj.Team;
 
 public class PlayActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -60,12 +73,83 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView textView;
     private List<Marker> markerList;
 
+    // Bounds for area intially
+    private static final LatLngBounds EDINBURGH_MEADOWS =
+            new LatLngBounds(new LatLng(55.940511, -3.195196), new LatLng(55.942117, -3.186929));
+
+    // area where team 1 respawns
+    private LatLngBounds respawnZoneTeam1;
+    private LatLngBounds respawnZoneTeam2;
+    // team 1's area in general (covers respawn area too to make tagging easier)
+    private LatLngBounds zoneTeam1;
+    private LatLngBounds zoneTeam2;
+    private LatLngBounds neutralZone;
+    // Gives the respawn area for the player's team
+    // NB different to the respawn area for two teams as it changes depending on your team
+    private LatLngBounds respawnArea;
+    // Gives the last location of the player
+    private Location playerLocation;
+    // Indicates if the player has been tagged by an enemy
+    private boolean playerTagged;
+    // Indicates if the player is in their respawn area
+    private boolean playerInRespawnArea;
+    // Shows the progress of the countdown
+    private ProgressBar countdownProgress;
+    // Length of time (in milliseconds that players have to wait to get released
+    private int waitingTime = 20000;
+    //Number of times location can be updated and not trigger a dialog if it's out of bounds
+    private int outOfBoundsGrace = 50;
+    private CountDownTimer countDownTimer;
+    private enum TimerStatus {
+        STARTED,
+        STOPPED
+    }
+    private TimerStatus timerStatus = TimerStatus.STOPPED;
+
+    // True if enemy flag has been revealed; false otherwise
+    private boolean flagRevealed;
+
+    // True if enemy is shown on map; false otherwise
+    // Separate as there may be time between revealing flag and showing on map
+    // Can avoid replacing the flag on the map repeatedly.
+    private boolean flagVisible;
+
+    // True if player is holding the flag; false otherwise
+    private boolean holdingFlag;
+
+    // True if the game is in progress for a round; false if there is a break e.g. to reset
+    private boolean gamePlayingNormally;
+
+    private Player player;
+    private Team playerTeam;
+
+    private ArrayList<LatLng> blueFlagLocations;
+    private ArrayList<LatLng> redFlagLocations;
+
+    // Distance user must be from a flag to locate it
+    private static final int FLAG_DISTANCE = 20;
+
+    // Distance user must be from an item/flag to pick it up
+    private static final int PICKUP_DISTANCE = 5;
+
+    private LatLng blueFlagLocation;
+    private LatLng redFlagLocation;
+
+    // all items on the map. Needs to be refreshed
+    private ArrayList<Item> items;
+
+    private int friendlyScore = 0;
+    private int enemyScore = 0;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
+
+        initialisePlayer();
+        //TODO get flag lat/lngs from server - need to also refresh from server
+
 
         //Initialises Difficulty and Points Systems
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
@@ -93,6 +177,22 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
+
+    private void initialisePlayer(){
+        Bundle bundle = getIntent().getExtras();
+        String deviceID = bundle.getString(getString(R.string.device_id));
+        String playerName = bundle.getString(getString(R.string.display_name));
+        String jsonTeam = bundle.getString(getString(R.string.team));
+        Gson gson = new Gson();
+        Type type = new TypeToken<Team>(){}.getType();
+        playerTeam = gson.fromJson(jsonTeam, type);
+
+        //TODO position is null to start with - fair enough?
+        player = new Player(deviceID, playerName, playerTeam, false, 0, 0,
+                0, getString(R.string.empty), null);
+    }
+
+
     /**
      * Method updates the activity when the map is ready by placing all of the word markers on the
      * map. The method also updates various User Interface elements of the map
@@ -102,11 +202,10 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        LatLngBounds ADELAIDE = new LatLngBounds(new LatLng(-35.0, 138.58), new LatLng(-34.9, 138.61));
+        mMap.setMinZoomPreference(16.0f);
 
         // Constrain the camera target to the Adelaide bounds.
-        mMap.setLatLngBoundsForCameraTarget(ADELAIDE);
+        mMap.setLatLngBoundsForCameraTarget(EDINBURGH_MEADOWS);
 
         // Set the camera to the greatest possible zoom level that includes the
 // bounds
@@ -126,7 +225,9 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.getUiSettings().setZoomControlsEnabled(false);
 
         repositionMapLocationButton(); //changes the position of map location button is created
-
+        //TODO would be good if creator of game could set bounds themselves.
+        calculateZones(EDINBURGH_MEADOWS);
+        addZones();
     }
 
     /**
@@ -152,6 +253,8 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             layoutParams.setMargins(0, 0, 80, 40);
         }
     }
+
+
 
     @Override
     protected void onStart() {
@@ -237,9 +340,29 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onLocationChanged(Location current) {
+        //update location of player
+        //TODO update server of new location
+        playerLocation = current;
+
 
         Log.d("New Location", "Lat: " + current.getLatitude() + "Lng : " + current.getLongitude());
         Location target = new Location("target");
+
+        // If the player was tagged, check they are still in the area
+        if (playerTagged){
+            // If they aren't (or are on their way) reset the timer
+            if (!playerInRespawnArea(respawnArea)){
+                stopCountDownTimer();
+            } else if (timerStatus == TimerStatus.STOPPED){
+                startCountDownTimer();
+            }
+        }
+        //If player is out of bounds, allow them to go out a bit (may be a mistake)
+        if (playerOutOfBounds()){
+            if (outOfBoundsGrace > 0) outOfBoundsGrace--;
+            // has gone far/repeatedly out of bounds - send dialog warning.
+            else sendOutOfBoundsDialog();
+        }
 
     }
 
@@ -293,27 +416,67 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
             processIntent(getIntent());
         }
+        // Play the game normally if possible
+        if (gamePlayingNormally) normalLoop();
+        if (playerTagged)
     }
 
-    private void refresh(){
-        // TODO
-        // send location to database
-        // if the player has been tagged, they must head back to respawn (can't see anything else)
-        //  - if the player needed to respawn and has entered the area, check that they are still there
-        //  - if they need to respawn and have moved away from the respawn, add time to the respawning and warn the player
-        //  - if they need to respawn but haven't entered the respawn area, keep disabled, but add no time penalty
-        //
-        // if player was not tagged then continue with the rest of the logic here:
-        // check if enemy flag revealed/hidden (store location on player's phone but keep secret)
-        // show enemy flag if revealed
-        // check if you're close to the flag
-        // reveal flag if the player is nearby
-        // if the flag was already revealed, and the player has waited 5 seconds nearby, collect the flag
-        // if the flag has been collected by either team, notify all users of the player(s) with the flag and where they are
-        // check if you're close to an item
-        // if you are, pick it up (and remove the item from the map)
-        //
-        // add logic for items as well? Leave for now
+    private void normalLoop(){
+        while (gamePlayingNormally)
+            if (playerTagged){
+                setContentView(R.layout.countdown_layout);
+                initCountdownValues();
+                //NB not starting timer yet(should be triggered after next location update
+                // - will only get tagged far away from respawn zone (so would take time to reach)
+                break;
+            }
+            if (flagRevealed && !flagVisible){
+                showFlagOnMap();
+            } else if (!flagRevealed && flagVisible){
+                hideFlagOnMap();
+            }
+            //TODO only checks if close - no time limit to wait atm
+            if (closeToFlag().equals(getString(R.string.real_flag)) && !holdingFlag){
+                flagRevealed = true;
+                holdingFlag = true;
+                alertFlagPickedUp();
+            } else if (closeToFlag().equals(getString(R.string.fake_flag)) && !holdingFlag){
+                //send toast alerting player from server
+            }
+            String closeItemId = closeToItem();
+            // If player is close to an item and has no item, get it
+            if (!closeItemId.equals("") && player.getItem().equals(getString(R.string.empty))){
+                pickUpItem(closeItemId);
+                removeItemFromMap();
+            }
+
+            if (holdingFlag && playerInTeamZone()){
+                player.incrementNumOfCaps();
+                //TODO keep track of score and start round again
+                // Both teams should have to be in their respawn areas.
+                restartRound();
+            }
+            updateFromServer();
+            //TODO check server to see if the gameplay is paused
+
+    }
+
+    private void taggedLoop(){
+        while (playerTagged){
+            if 
+        }
+    }
+
+    private void updateFromServer(){
+
+    }
+
+    private void restartRound(){
+
+    }
+
+    private void alertFlagPickedUp(){
+
     }
 
     void processIntent(Intent intent) {
@@ -322,7 +485,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         // only one message sent during the beam
         NdefMessage msg = (NdefMessage) rawMsgs[0];
         Toast.makeText(this, (msg.getRecords()[0].getPayload().toString()), Toast.LENGTH_SHORT).show();
-        if (((msg.getRecords()[0].getPayload())).toString()=="Tag, you're it!"){
+        if (((msg.getRecords()[0].getPayload())).toString().equals("Tag, you're it!")){
             System.out.println("Tagged!");
         }
         // record 0 contains the MIME type, record 1 is the AAR, if present
@@ -413,6 +576,307 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         }
         return (locationMode == Settings.Secure.LOCATION_MODE_HIGH_ACCURACY);
 
+    }
+
+    private LatLng extractLatLngFromLocation(Location location){
+        return new LatLng(location.getLatitude(), location.getLongitude());
+    }
+
+    // Check if the player is in their own respawn area.
+    private boolean playerInRespawnArea(LatLngBounds respawnArea){
+        if(playerLocation != null){
+            LatLng playerLatLng = extractLatLngFromLocation(playerLocation);
+            return respawnArea.contains(playerLatLng);
+        } else {
+            return false;
+        }
+    }
+
+    private boolean playerInTeamZone(){
+        if (playerLocation != null){
+            LatLng playerLatLng = extractLatLngFromLocation(playerLocation);
+            // Blue team = team 1
+            if (playerTeam.equals(Team.blueTeam)){
+                return zoneTeam1.contains(playerLatLng);
+            } else {
+                return zoneTeam2.contains(playerLatLng);
+            }
+        } else {
+            return false;
+        }
+    }
+
+    // Check if the player has gone out of bounds.
+    private boolean playerOutOfBounds(){
+        if (playerLocation != null){
+            LatLng playerLatLng = extractLatLngFromLocation(playerLocation);
+            return EDINBURGH_MEADOWS.contains(playerLatLng);
+        } else {
+            return false;
+        }
+    }
+
+    private void sendOutOfBoundsDialog(){
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        adb.setTitle(R.string.out_of_bounds);
+        adb.setMessage(R.string.msg_out_of_bounds);
+        adb.setPositiveButton(R.string.return_back, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+        adb.setNegativeButton(R.string.quit, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //Quit, return to home screen
+                Intent homeIntent = new Intent(getApplicationContext(), HomeActivity.class);
+                startActivity(homeIntent);
+            }
+        });
+
+        AlertDialog ad = adb.create();
+        ad.setCancelable(false);
+        ad.setCanceledOnTouchOutside(false);
+        ad.show();
+        // Reset the amount the player can be out of bounds.
+        outOfBoundsGrace = 50;
+    }
+
+    // Initialise variables before counting down
+    private void initCountdownValues(){
+        countdownProgress = (ProgressBar) findViewById(R.id.progress_countdown);
+        countdownProgress.setMax(waitingTime);
+    }
+
+    //TODO - need to tell it to start when the player is tagged
+    //TODO - need to call initvalues()
+
+    private void startCountDownTimer(){
+        timerStatus = TimerStatus.STARTED;
+        countdownProgress.setProgress(0);
+        hideRespawnErrorMessage();
+        countDownTimer = new CountDownTimer(waitingTime, 10) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                countdownProgress.setProgress(waitingTime - (int) millisUntilFinished);
+            }
+
+            @Override
+            public void onFinish() {
+                countdownProgress.setProgress(waitingTime);
+                playerTagged = false;
+                //TODO - start normal loop again
+            }
+        }.start();
+        countDownTimer.start();
+
+    }
+
+    private void stopCountDownTimer(){
+        timerStatus = TimerStatus.STOPPED;
+        showRespawnErrorMessage();
+        countDownTimer.cancel();
+    }
+
+    private void hideRespawnErrorMessage(){
+        TextView title = findViewById(R.id.txt_view_respawn_error_title);
+        TextView msg = findViewById(R.id.txt_view_respawn_error_message);
+        title.setVisibility(TextView.INVISIBLE);
+        msg.setVisibility(TextView.INVISIBLE);
+    }
+
+    private void showRespawnErrorMessage(){
+        TextView title = findViewById(R.id.txt_view_respawn_error_title);
+        TextView msg = findViewById(R.id.txt_view_respawn_error_message);
+        title.setVisibility(TextView.VISIBLE);
+        msg.setVisibility(TextView.VISIBLE);
+    }
+
+    private void calculateZones(LatLngBounds totalArea){
+        LatLng northeast = totalArea.northeast;
+        LatLng southwest = totalArea.southwest;
+
+        //TODO allow changes in orientation (not simply horizontal as needed here for simple solution)
+        //x1, x6 is the order they'd appear on an axis (similarly for y1, y2)
+        double x1 = southwest.longitude;
+        double x6 = northeast.longitude;
+        double y1 = southwest.latitude;
+        double y2 = northeast.latitude;
+
+        //TODO biased to Edinburgh here (longitude would be negative)
+        double x = x6 - x1;
+        double x2 = x1 + x/8;
+        double x3 = x1 + x*3/8;
+        double x4 = x1 + x*5/8;
+        double x5 = x1 + x*7/8;
+
+
+
+        respawnZoneTeam1 = new LatLngBounds(new LatLng(x1, y1), new LatLng(x2, y2));
+        zoneTeam1 = new LatLngBounds(new LatLng(x1, y1), new LatLng(x3, y2));
+        neutralZone = new LatLngBounds(new LatLng(x3, y1), new LatLng(x4, y2));
+        zoneTeam2 = new LatLngBounds(new LatLng(x4, y1), new LatLng(x5, y2));
+        respawnZoneTeam2 = new LatLngBounds(new LatLng(x5, y1), new LatLng(x6, y2));
+
+    }
+
+    //TODO would be better if didn't show enemy respawn zone (unnecessary)
+    //Adds zones to the map and displays them. Called only when loading map for first time in the activity
+    private void addZones(){
+        // Check that the zones have been calculated, if not then stop
+        if (respawnZoneTeam1 == null || zoneTeam1 == null
+                || neutralZone == null || zoneTeam2 == null || respawnZoneTeam2 == null
+                ) return;
+        // Remove anything that might have been on the map before
+        mMap.clear();
+        Polygon rectRespawnTeam1 = mMap.addPolygon(calculateRectangle(respawnZoneTeam1));
+        rectRespawnTeam1.setTag(getString(R.string.respawn_1));
+        rectRespawnTeam1.setZIndex(1);
+        rectRespawnTeam1.setFillColor(0x7F2196F3);
+        rectRespawnTeam1.setStrokeWidth(0);
+
+        Polygon rectTeam1 = mMap.addPolygon(calculateRectangle(zoneTeam1));
+        rectTeam1.setTag(getString(R.string.zone_1));
+        rectTeam1.setFillColor(0x7F1565C0);
+        rectTeam1.setStrokeWidth(0);
+
+        Polygon rectNeutral = mMap.addPolygon(calculateRectangle(neutralZone));
+        rectNeutral.setTag(getString(R.string.zone_neutral));
+        rectNeutral.setFillColor(0x7F9E9E9E);
+        rectNeutral.setStrokeWidth(0);
+
+        Polygon rectTeam2 = mMap.addPolygon(calculateRectangle(zoneTeam2));
+        rectTeam2.setTag(getString(R.string.zone_2));
+        rectTeam2.setFillColor(0x7FC62828);
+        rectTeam2.setStrokeWidth(0);
+
+        Polygon rectRespawnTeam2 = mMap.addPolygon(calculateRectangle(respawnZoneTeam2));
+        rectRespawnTeam2.setTag(getString(R.string.respawn_2));
+        rectRespawnTeam2.setZIndex(1);
+        rectRespawnTeam2.setFillColor(0x7FF44336);
+        rectRespawnTeam2.setStrokeWidth(0);
+
+    }
+    //TODO assumes rectangle is horizontal
+    private PolygonOptions calculateRectangle(LatLngBounds bounds){
+        LatLng northeast = bounds.northeast;
+        LatLng southwest = bounds.southwest;
+        double x1 = southwest.longitude;
+        double x2 = northeast.longitude;
+        double y1 = southwest.latitude;
+        double y2 = northeast.latitude;
+
+        return new PolygonOptions()
+                .clickable(true)
+                .add(new LatLng(x1, y1),
+                     new LatLng(x1, y2),
+                     new LatLng(x2, y2),
+                     new LatLng(x2, y1));
+    }
+
+    private void clearMap(){
+        mMap.clear();
+        flagVisible = false;
+
+    }
+
+    private void refreshMap(){
+        mMap.clear();
+        addZones();
+        if (flagVisible) showFlagOnMap();
+    }
+
+    private void showFlagOnMap(){
+        if (playerTeam.equals(Team.blueTeam)){
+            // Shows all flags (there may be more than one due to dummy flags)
+            // True flag is at index 0.
+            // TODO use ArrayList for flagVisible - could hide dummy flags. Temp solution = send Toast
+            for(LatLng flagLocation : redFlagLocations){
+                mMap.addMarker(new MarkerOptions().position(flagLocation));
+            }
+        } else {
+            for(LatLng flagLocation : blueFlagLocations){
+                mMap.addMarker(new MarkerOptions().position(flagLocation));
+            }
+        }
+        flagVisible = true;
+    }
+
+    private void hideFlagOnMap(){
+        flagVisible = false;
+        refreshMap();
+    }
+
+    // Returns if the person is next to a) no flag, b) a fake flag, c) the real flag
+    private String closeToFlag(){
+        if (playerLocation != null){
+            LatLng playerLatLng = extractLatLngFromLocation(playerLocation);
+            // Blue team = team 1
+            if (playerTeam.equals(Team.blueTeam)){
+                for(int i = 0; i < redFlagLocations.size(); i++){
+                    double distance = SphericalUtil.computeDistanceBetween(redFlagLocations.get(i), playerLatLng);
+                    if (distance < PICKUP_DISTANCE){
+                        // Close to the real flag
+                        if (i == 0) return getString(R.string.real_flag);
+                        // Close to a flag that is fake
+                        else return getString(R.string.fake_flag);
+                    }
+                    if (distance < FLAG_DISTANCE){
+                        // Notify user that a flag is nearby
+                        return getString(R.string.flag_close);
+                    }
+                }
+                // finished loop, found no nearby flags - return no flag
+                return getString(R.string.no_flag);
+
+            } else {//player is on red team
+                for(int i = 0; i < blueFlagLocations.size(); i++){
+                    double distance = SphericalUtil.computeDistanceBetween(blueFlagLocations.get(i), playerLatLng);
+                    if (distance < PICKUP_DISTANCE){
+                        // Close to the real flag
+                        if (i == 0) return getString(R.string.real_flag);
+                            // Close to a flag that is fake
+                        else return getString(R.string.fake_flag);
+                    }
+                    if (distance < FLAG_DISTANCE){
+                        return getString(R.string.flag_close);
+                    }
+                }
+                return getString(R.string.no_flag);
+            }
+        } else {
+            return getString(R.string.no_flag);
+        }
+    }
+
+    // Returns the itemId of any item that is near enough to pick up
+    private String closeToItem(){
+        if (playerLocation != null){
+            LatLng playerLatLng = extractLatLngFromLocation(playerLocation);
+            for (int i = 0; i < items.size(); i++){
+                double distance = SphericalUtil.computeDistanceBetween(items.get(i).getPosition(), playerLatLng);
+                if (distance < PICKUP_DISTANCE){
+                    return items.get(i).getId();
+                }
+            }
+            return "";
+        } else {
+            return "";
+        }
+    }
+
+    private void pickUpItem(String itemId){
+        for (int i = 0; i < items.size(); i++){
+            if (items.get(i).getId().equals(itemId)){
+                items.remove(i);
+                break;
+            }
+        }
+    }
+
+    private void removeItemFromMap(){
+        //refresh map to remove items out of list
     }
 
 }
