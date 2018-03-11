@@ -20,6 +20,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -113,6 +114,7 @@ public class HomeActivity extends AppCompatActivity
 
         switch (v.getId()) {
             case R.id.btn_play:
+                Toast.makeText(this, "Please be patient", Toast.LENGTH_SHORT).show();
                 Intent playIntent = new Intent(this, PlayActivity.class);
                 Bundle bundle = new Bundle();
                 bundle.putString(getString(R.string.device_id), Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID));
