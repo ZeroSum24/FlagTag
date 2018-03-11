@@ -12,13 +12,13 @@ public class HelpActivity extends AppCompatActivity implements
     private Integer pointer=0;
     private String[] hintTitles={"Title1","Title2"};
     private String[] hints={"Hint1","Hint2"};
-    private String hintTitleCurrant=hintTitles[pointer];
-    private String hintCurrant=hints[pointer];
+    private String hintTitleCurrant="";
+    private String hintCurrant="";
     private ImageButton LeftButton;
     private ImageButton RightButton;
 
-    TextView hintTitleTV = (TextView)findViewById(R.id.TitleText);
-    TextView hintTV = (TextView)findViewById(R.id.HintText);
+    TextView hintTitleTV;
+    TextView hintTV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,10 +28,12 @@ public class HelpActivity extends AppCompatActivity implements
         LeftButton = findViewById(R.id.LeftButton);
         RightButton = findViewById(R.id.RightButton);
 
-        LeftButton.setOnClickListener(this);
-        RightButton.setOnClickListener(this);
-        //updateTextView(0);
+        hintTitleTV = (TextView)findViewById(R.id.TitleText);
+        hintTV = (TextView)findViewById(R.id.HintText);
+
+        updateTextView(0);
     }
+
     private void updateTextView(int i) {
         if ((pointer + i > 0) && (pointer + i < hints.length)) {
             pointer += i;
@@ -39,6 +41,8 @@ public class HelpActivity extends AppCompatActivity implements
             hintTV.setText(hints[pointer]);
         }
     }
+
+    @Override
     public void onClick(View v) {
 
         switch (v.getId()) {
@@ -48,7 +52,6 @@ public class HelpActivity extends AppCompatActivity implements
             case R.id.RightButton:
                 updateTextView(1);
                 break;
-
         }
     }
 }
