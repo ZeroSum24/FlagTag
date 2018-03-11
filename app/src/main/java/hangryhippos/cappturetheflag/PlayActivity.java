@@ -38,6 +38,7 @@ import com.google.android.gms.maps.model.Marker;
 
 import java.util.List;
 import java.nio.charset.Charset;
+import java.util.Timer;
 
 public class PlayActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -70,6 +71,11 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     // Length of time (in milliseconds that players have to wait to get released
     private int waitingTime = 20000;
     private CountDownTimer countDownTimer;
+    private enum TimerStatus {
+        STARTED,
+        STOPPED
+    }
+    private TimerStatus timerStatus = TimerStatus.STOPPED;
 
 
 
@@ -259,7 +265,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             // If they aren't (or are on their way) reset the timer
             if (!playerInRespawnArea(respawnArea)){
                 stopCountDownTimer();
-            } else {
+            } else if (timerStatus == TimerStatus.STOPPED){
                 startCountDownTimer();
             }
         }
@@ -461,6 +467,7 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
     //TODO - need to tell it to start when the player is tagged
 
     private void startCountDownTimer(){
+        timerStatus = TimerStatus.STARTED;
         countdownProgress.setProgress(0);
         hideRespawnErrorMessage();
         countDownTimer = new CountDownTimer(waitingTime, 10) {
@@ -477,9 +484,11 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }.start();
         countDownTimer.start();
+
     }
 
     private void stopCountDownTimer(){
+        timerStatus = TimerStatus.STOPPED;
         showRespawnErrorMessage();
         countDownTimer.cancel();
     }
