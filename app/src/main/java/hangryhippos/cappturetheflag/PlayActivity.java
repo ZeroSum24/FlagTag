@@ -121,6 +121,9 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         LatLngBounds ADELAIDE = new LatLngBounds(new LatLng(-35.0, 138.58), new LatLng(-34.9, 138.61));
+//        55.941608, -3.192494
+
+//        LatLngBounds Meadows = new LatLngBounds(new LatLng(55.941608, -3.192494), new LatLng(55.940589, -3.190078));
 
         // Constrain the camera target to the Adelaide bounds.
         mMap.setLatLngBoundsForCameraTarget(ADELAIDE);
