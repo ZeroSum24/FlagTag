@@ -19,4 +19,7 @@
     <string name="format_name">Name: %1$s</string>
     <string name="connection_type">Connection Type</string>
     <string name="change">Change</string>
+    <string name="textview">TextView</string>
+    <string name="logo">Logo</string>
+    <string name="hello">Hello</string>
 </resources>
