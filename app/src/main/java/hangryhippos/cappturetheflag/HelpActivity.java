@@ -3,6 +3,7 @@ package hangryhippos.cappturetheflag;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -11,8 +12,8 @@ import android.widget.TextView;
 public class HelpActivity extends AppCompatActivity implements
         View.OnClickListener {
     private Integer pointer=0;
-    private String[] hintTitles={getString(R.string.hint_intro_title),getString(R.string.hint_get_started_title), getString(R.string.hint_rules_title)};
-    private String[] hints={getString(R.string.hint_intro_msg),getString(R.string.hint_get_started_msg), getString(R.string.hint_rules_msg)};
+    private String[] hintTitles;
+    private String[] hints;
     private String hintTitleCurrent="";
     private String hintCurrent="";
     private ImageButton LeftButton;
@@ -27,14 +28,18 @@ public class HelpActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_help);
 
+        hintTitles = new String[]{getString(R.string.hint_intro_title),getString(R.string.hint_get_started_title), getString(R.string.hint_rules_title)};
+        Log.e("tag", hintTitles[0]);
+        hints = new String[]{getString(R.string.hint_intro_msg),getString(R.string.hint_get_started_msg), getString(R.string.hint_rules_msg)};
+
         LeftButton = findViewById(R.id.LeftButton);
         RightButton = findViewById(R.id.RightButton);
         homeButton = findViewById(R.id.circle);
 
-        hintTitleTV = (TextView)findViewById(R.id.HintText);
-        hintTV = (TextView)findViewById(R.id.TitleText);
-
-        updateTextView(0);
+        hintTV = (TextView)findViewById(R.id.HintText);
+        hintTitleTV = (TextView)findViewById(R.id.TitleText);
+        hintTV.setText(hints[0]);
+        hintTitleTV.setText(hintTitles[0]);
     }
 
     private void updateTextView(int i) {
