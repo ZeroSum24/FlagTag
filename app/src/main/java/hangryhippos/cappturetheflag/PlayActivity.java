@@ -49,10 +49,6 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         CreateNdefMessageCallback {
 
 
-    private Button lyricsButton;
-    private Button guessButton;
-    private RelativeLayout settingsMenu;
-    private View congratsOverlay;
     public NfcAdapter mNfcAdapter;
     private GoogleMap mMap;
     private SupportMapFragment mapFragment;
@@ -88,7 +84,9 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         //in order to keep the user interface responsive
         mapFragment.getMapAsync(this);
 
-        mGoogleApiClient = GoogleApiHandler.getInstance(PlayActivity.this).getApiClient();
+        if (mGoogleApiClient == null) {
+            buildGoogleApiClient();
+        }
 
         Log.e("LocationAPICreate", "LocationAPI null: " + (mGoogleApiClient == null));
         Log.e("LocationOnCreate", "Location null: " + (mLastLocation == null));
@@ -183,11 +181,25 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         // Can we access the user’s current location?
         int permissionCheck = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION);
-        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
+
             LocationServices.FusedLocationApi
                     .requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
 
+    }
+
+    /**
+     * Method builds the Google Api Client for use by the map
+     */
+    private synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        mGoogleApiClient.connect();
     }
 
     @Override

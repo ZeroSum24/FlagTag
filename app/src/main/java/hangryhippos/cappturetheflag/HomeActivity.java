@@ -12,13 +12,17 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -53,16 +57,14 @@ public class HomeActivity extends AppCompatActivity
     // Set to false to require the user to click the button in order to sign in.
     private boolean mAutoStartSignInFlow = true;
 
-    private ImageView viewLeaderboardButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
 
-        mGoogleApiClient = GoogleApiHandler.getInstance(HomeActivity.this).getApiClient();
+
+
         ImageView play = findViewById(R.id.btn_play);
         play.setOnClickListener(this);
 
@@ -71,6 +73,8 @@ public class HomeActivity extends AppCompatActivity
 
         ImageView settings = findViewById(R.id.btn_settings);
         settings.setOnClickListener(this);
+
+        buildGoogleApiClient();
 
         //Check if the player has a name stored - if not then ask them to enter one
         if (!checkDisplayName()) {
@@ -81,17 +85,6 @@ public class HomeActivity extends AppCompatActivity
         if (!isNetworkAvailable(this)) {
             sendNetworkErrorDialog();
         }
-
-        viewLeaderboardButton = findViewById(R.id.wLeaderboard);
-        viewLeaderboardButton.setOnClickListener(new View.OnClickListener()
-
-        {
-            @Override
-            public void onClick(View v) {
-                showLeaderboard();
-            }
-        });
-
 
     }
 
@@ -126,6 +119,9 @@ public class HomeActivity extends AppCompatActivity
                 mSignInClicked = true;
                 mGoogleApiClient.connect();
                 break;
+            case R.id.wLeaderboard:
+                showLeaderboard();
+                break;
 
         }
     }
@@ -143,7 +139,7 @@ public class HomeActivity extends AppCompatActivity
     @Override
     public void onConnectionSuspended(int i) {
         Log.d(TAG, "onConnectionSuspended() called. Trying to reconnect.");
-        mGoogleApiClient.connect();
+        buildGoogleApiClient();
     }
 
     @Override
@@ -171,7 +167,7 @@ public class HomeActivity extends AppCompatActivity
             mSignInClicked = false;
             mResolvingConnectionFailure = false;
             if (responseCode == RESULT_OK) {
-                mGoogleApiClient.connect();
+                buildGoogleApiClient();
             } else {
                 BaseGameUtils.showActivityResultError(this, requestCode, responseCode, R.string.signin_other_error);
                 showSignInBar();
@@ -184,7 +180,7 @@ public class HomeActivity extends AppCompatActivity
     protected void onStart() {
         Log.d(TAG, "onStart()");
         super.onStart();
-        mGoogleApiClient.connect();
+        buildGoogleApiClient();
 
 //        submitScoreToLeaderboard();
     }
@@ -200,6 +196,20 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
+    /**
+     * Method builds the Google Api Client for use by in signing in to Google Play Services
+     */
+    private synchronized void buildGoogleApiClient() {
+
+            if (mGoogleApiClient == null) {
+                mGoogleApiClient = new GoogleApiClient.Builder(this)
+                        .addConnectionCallbacks(this)
+                        .addOnConnectionFailedListener(this)
+                        .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                        .build();
+            }
+            mGoogleApiClient.connect();
+    }
 
     /**
      * Shows the "sign in" bar (explanation and button).
@@ -259,7 +269,6 @@ public class HomeActivity extends AppCompatActivity
 //            }
 //        }
     }
-
 
     private boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
