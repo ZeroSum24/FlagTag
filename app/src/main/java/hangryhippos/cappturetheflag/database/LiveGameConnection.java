@@ -88,6 +88,7 @@ public class LiveGameConnection {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), set("blueTeam.members.$.isJailed", inJail));
     }
 
+
     /**
      * Set the number of flag captures the user has
      * @param num Number of flag captures
@@ -138,6 +139,8 @@ public class LiveGameConnection {
         collection.findOneAndUpdate(and(eq("_id", 0), eq("redTeam.members.deviceID", deviceID)), inc("redTeam.members.$.numOfJails", 1));
         collection.findOneAndUpdate(and(eq("_id", 0), eq("blueTeam.members.deviceID", deviceID)), inc("blueTeam.members.$.numOfJails", 1));
     }
+
+
 
     /**
      * Set the item the player is currently holding
