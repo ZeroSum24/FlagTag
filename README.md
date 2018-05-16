@@ -1,4 +1,4 @@
-# FlagTag
+# FlagTag - Android Children's Game
 
 
 ## App Description
